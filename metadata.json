@@ -1,0 +1,6 @@
+{
+  "name": "赌局录",
+  "description": "斗智漫画赌局档案馆——收录《噬谎者》《欺诈游戏》《赌博默示录》等经典智斗漫画的完整赌局规则、胜负裁决与战利品记录。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

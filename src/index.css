@@ -1,0 +1,304 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "PingFangLaiJiangHuLangYa";
+  src: url("/fonts/PingFangLaiJiangHuLangYa.ttf") format("truetype");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "HuiwenMincho";
+  src: url("/fonts/HuiwenMincho-GBK.ttf") format("truetype");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-display: "PingFangLaiJiangHuLangYa", "HuiwenMincho", "Songti SC", serif;
+  --font-mincho: "HuiwenMincho", "Songti SC", "STSong", Georgia, serif;
+  --font-sans: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Heiti SC", sans-serif;
+}
+
+/* ==================== 2 THEMES: DARK & LIGHT ==================== */
+/* 1. 深色模式 (Default — Sumi Obsidian & Burnished Brass Print Salon) */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-page: #09090c;
+  --bg-header: rgba(9, 9, 12, 0.9);
+  --bg-shelf: #0f0f14;
+  --bg-card: #131319;
+  --bg-card-hover: #191922;
+  --bg-inset: #1a1a22;
+  --bg-colophon: #060608;
+  --bg-input: #14141b;
+  --bg-img: #0d0d11;
+  --text-primary: #f4f0e8;
+  --text-secondary: #cac5bc;
+  --text-muted: #8b8780;
+  --border-subtle: #25252f;
+  --border-hairline: #1d1d26;
+  --border-strong: #4e4c58;
+  --accent: #d93636;
+  --accent-hover: #b82929;
+  --accent-fg: #ffffff;
+  --brass: #c8a66e;
+  --brass-muted: rgba(200, 166, 110, 0.28);
+  --btn-primary-bg: #f4f0e8;
+  --btn-primary-fg: #09090c;
+  --win-bg: #000000;
+  --win-fg: #ffffff;
+  --win-border: rgba(255, 255, 255, 0.3);
+  --lose-bg: #22222b;
+  --lose-fg: #9a9690;
+  --lose-border: #333340;
+  --img-ring: rgba(255, 255, 255, 0.1);
+  --spoiler-bg: #070709;
+  --card-shadow: 0 14px 32px -18px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  --card-shadow-hover: 0 22px 44px -18px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(200, 166, 110, 0.16);
+  --cover-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.85);
+  --dot-pattern: rgba(244, 240, 232, 0.032);
+  --hero-glow: radial-gradient(64% 42% at 50% 0%, rgba(217, 54, 54, 0.11) 0%, rgba(200, 166, 110, 0.045) 45%, rgba(9, 9, 12, 0) 100%);
+}
+
+/* 2. 亮色模式 (Archival Rag Paper & Bronze Ink) */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-page: #f3eee5;
+  --bg-header: rgba(243, 238, 229, 0.92);
+  --bg-shelf: #eae3d6;
+  --bg-card: #fcfaf5;
+  --bg-card-hover: #ffffff;
+  --bg-inset: #efe9dc;
+  --bg-colophon: #111013;
+  --bg-input: #fcfaf5;
+  --bg-img: #e5dfd2;
+  --text-primary: #14120f;
+  --text-secondary: #3b3731;
+  --text-muted: #6f6a61;
+  --border-subtle: #dad2c2;
+  --border-hairline: #e7e0d2;
+  --border-strong: #231f1a;
+  --accent: #b81d1d;
+  --accent-hover: #961616;
+  --accent-fg: #ffffff;
+  --brass: #8f6b32;
+  --brass-muted: rgba(143, 107, 50, 0.28);
+  --btn-primary-bg: #14120f;
+  --btn-primary-fg: #fcfaf5;
+  --win-bg: #0a0a0a;
+  --win-fg: #ffffff;
+  --win-border: #0a0a0a;
+  --lose-bg: #eee8dc;
+  --lose-fg: #6b655c;
+  --lose-border: #d8d0c0;
+  --img-ring: rgba(20, 18, 15, 0.12);
+  --spoiler-bg: #111013;
+  --card-shadow: 0 10px 26px -16px rgba(20, 18, 15, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --card-shadow-hover: 0 18px 36px -16px rgba(20, 18, 15, 0.28), inset 0 1px 0 rgba(255, 255, 255, 1);
+  --cover-shadow: 0 12px 24px -10px rgba(20, 18, 15, 0.34);
+  --dot-pattern: rgba(20, 18, 15, 0.04);
+  --hero-glow: radial-gradient(62% 40% at 50% 0%, rgba(184, 29, 29, 0.07) 0%, rgba(143, 107, 50, 0.05) 45%, rgba(243, 238, 229, 0) 100%);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+  }
+
+  ::selection {
+    background-color: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mincho {
+  font-family: var(--font-mincho);
+}
+
+/* Subtle Japanese manga halftone dot surface + ambient gallery top spotlight */
+.atelier-canvas {
+  background-color: var(--bg-page);
+  background-image:
+    var(--hero-glow),
+    radial-gradient(var(--dot-pattern) 1px, transparent 1px);
+  background-size: 100% 620px, 18px 18px;
+  background-repeat: no-repeat, repeat;
+}
+
+.collector-card {
+  box-shadow: var(--card-shadow);
+  transition: border-color 260ms ease,
+    background-color 260ms ease,
+    box-shadow 260ms ease;
+}
+
+/* Silky 60fps in-place scaling for interactive list cards */
+.collector-card-interactive {
+  position: relative;
+  z-index: 0;
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center center;
+  backface-visibility: hidden;
+  will-change: transform;
+  box-shadow: var(--card-shadow);
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    z-index 0ms linear 360ms;
+}
+
+.collector-card-interactive::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: var(--card-shadow-hover);
+  opacity: 0;
+  transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+}
+
+.collector-card-interactive:hover,
+.collector-card-interactive:focus-within {
+  z-index: 20;
+  transform: translate3d(0, 0, 0) scale(1.018);
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    z-index 0ms linear 0ms;
+}
+
+.collector-card-interactive:hover::after,
+.collector-card-interactive:focus-within::after {
+  opacity: 1;
+}
+
+/* Silky 60fps whole-item scaling for top cover shelf */
+.cover-rail-item {
+  position: relative;
+  z-index: 0;
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center center;
+  backface-visibility: hidden;
+  will-change: transform;
+  transition:
+    transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    z-index 0ms linear 340ms;
+}
+
+.cover-rail-item:hover,
+.cover-rail-item:focus-visible {
+  z-index: 20;
+  transform: translate3d(0, 0, 0) scale(1.045);
+  transition:
+    transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    z-index 0ms linear 0ms;
+}
+
+.cover-plate-shadow {
+  box-shadow: var(--cover-shadow);
+}
+
+/* Clean hidden horizontal scrollbar for the top manga cover strip */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Natural editorial view, banner, and dialog entrance transitions */
+@keyframes pageReveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes modalBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalPanelLift {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.page-reveal {
+  animation: pageReveal 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.banner-reveal {
+  animation: pageReveal 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.modal-backdrop-enter {
+  animation: modalBackdropFade 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.modal-panel-enter {
+  animation: modalPanelLift 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
