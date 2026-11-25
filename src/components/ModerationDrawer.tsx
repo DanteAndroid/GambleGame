@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { Check, ImageUp, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
 import { GAMBLE_RECORDS, MANGA_SERIES, UPCOMING_MANGA_SHELF } from '../data/gambles';
+import { getThumbImageUrl } from '../utils/imageUrl';
 import {
   COPY_FIELD_LABELS,
   type ApprovedOverrides,
@@ -295,24 +296,24 @@ export function ModerationDrawer({
       aria-modal="true"
       aria-labelledby="moderation-modal-title"
       data-testid="moderation-drawer"
-      className="modal-backdrop-enter fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-sm"
+      className="modal-backdrop-enter fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal-panel-enter w-full max-w-4xl max-h-[90vh] flex flex-col bg-[var(--bg-card)] border border-[var(--border-strong)] shadow-2xl overflow-hidden">
+      <div className="modal-panel-enter w-full max-w-4xl h-full sm:h-auto max-h-full sm:max-h-[90vh] flex flex-col bg-[var(--bg-card)] border-0 sm:border border-[var(--border-strong)] shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-4 bg-[var(--bg-shelf)]">
-          <div className="flex items-center gap-3">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-3 sm:gap-4 bg-[var(--bg-shelf)]">
+          <div className="flex items-center gap-3 min-w-0">
             <SlidersHorizontal
               className="w-5 h-5 text-[var(--brass)] shrink-0"
               aria-hidden="true"
             />
-            <div>
-              <div className="flex items-center gap-2.5">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2
                   id="moderation-modal-title"
-                  className="font-mincho font-normal text-[20px] text-[var(--text-primary)]"
+                  className="font-mincho font-normal text-[18px] sm:text-[20px] text-[var(--text-primary)]"
                 >
                   管理后台
                 </h2>
@@ -320,7 +321,7 @@ export function ModerationDrawer({
                   仅限本机 localhost
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+              <p className="mt-0.5 text-xs text-[var(--text-muted)] line-clamp-1 sm:line-clamp-none">
                 审核读者提交的纠错记录，管理作品封面与已生效覆盖；仅限本机访问
               </p>
             </div>
@@ -330,20 +331,20 @@ export function ModerationDrawer({
             type="button"
             onClick={onClose}
             aria-label="关闭管理后台"
-            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            className="w-9 h-9 inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="px-6 pt-4 pb-3 border-b border-[var(--border-hairline)] flex flex-wrap items-center justify-between gap-3">
+        <div className="px-4 sm:px-6 pt-3.5 pb-3 border-b border-[var(--border-hairline)] flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="admin-tab-pending"
               onClick={() => setTab('pending')}
-              className={`px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
+              className={`min-h-[36px] px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
                 tab === 'pending'
                   ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] border-[var(--btn-primary-bg)] font-semibold'
                   : 'bg-transparent text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
@@ -355,7 +356,7 @@ export function ModerationDrawer({
               type="button"
               data-testid="admin-tab-covers"
               onClick={() => setTab('covers')}
-              className={`px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
+              className={`min-h-[36px] px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
                 tab === 'covers'
                   ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] border-[var(--btn-primary-bg)] font-semibold'
                   : 'bg-transparent text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
@@ -367,7 +368,7 @@ export function ModerationDrawer({
               type="button"
               data-testid="admin-tab-history"
               onClick={() => setTab('history')}
-              className={`px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
+              className={`min-h-[36px] px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
                 tab === 'history'
                   ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] border-[var(--btn-primary-bg)] font-semibold'
                   : 'bg-transparent text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
@@ -379,14 +380,14 @@ export function ModerationDrawer({
           <button
             type="button"
             onClick={fetchModerationData}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+            className="min-h-[36px] px-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
           >
             刷新
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4">
           {errorMsg && (
             <p className="px-3.5 py-2.5 text-xs bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/40">
               {errorMsg}
@@ -455,8 +456,10 @@ export function ModerationDrawer({
                             <p className="text-[11px] text-[var(--text-muted)] mb-1.5">当前图片</p>
                             <div className="w-28 aspect-[128/182] overflow-hidden bg-[var(--bg-img)] ring-1 ring-[var(--img-ring)]">
                               <img
-                                src={currentCoverUrl}
+                                src={getThumbImageUrl(currentCoverUrl)}
                                 alt="当前图片"
+                                loading="lazy"
+                                decoding="async"
                                 className="w-full h-full object-cover block"
                               />
                             </div>
@@ -564,8 +567,10 @@ export function ModerationDrawer({
                     >
                       <div className="w-[74px] aspect-[128/182] rounded-[4px] overflow-hidden bg-[var(--bg-img)] ring-1 ring-[var(--img-ring)] shrink-0">
                         <img
-                          src={effectiveCover}
+                          src={getThumbImageUrl(effectiveCover)}
                           alt={`《${series.title}》封面`}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover block"
                         />
                       </div>

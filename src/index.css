@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: "PingFangLaiJiangHuLangYa";
-  src: url("/fonts/PingFangLaiJiangHuLangYa.ttf") format("truetype");
+  src: url("/fonts/PingFangLaiJiangHuLangYa-subset.woff2") format("woff2");
   font-weight: 400 900;
   font-style: normal;
   font-display: swap;
@@ -10,7 +10,7 @@
 
 @font-face {
   font-family: "HuiwenMincho";
-  src: url("/fonts/HuiwenMincho-GBK.ttf") format("truetype");
+  src: url("/fonts/HuiwenMincho-subset.woff2") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: swap;
@@ -36,17 +36,22 @@
   --bg-colophon: #060608;
   --bg-input: #14141b;
   --bg-img: #0d0d11;
-  --text-primary: #f4f0e8;
-  --text-secondary: #cac5bc;
-  --text-muted: #8b8780;
-  --border-subtle: #25252f;
-  --border-hairline: #1d1d26;
-  --border-strong: #4e4c58;
-  --accent: #d93636;
-  --accent-hover: #b82929;
+  --text-primary: #f5f2eb;
+  --text-secondary: #d8d3ca;
+  --text-muted: #a6a198;
+  --border-subtle: #2b2b38;
+  --border-hairline: #22222d;
+  --border-strong: #5c5a69;
+  --accent: #e04242;
+  --accent-hover: #c43131;
   --accent-fg: #ffffff;
-  --brass: #c8a66e;
-  --brass-muted: rgba(200, 166, 110, 0.28);
+  --brass: #d5b47a;
+  --brass-muted: rgba(213, 180, 122, 0.34);
+  --diagram-surface: #181821;
+  --diagram-panel: #20202b;
+  --diagram-border: #363647;
+  --diagram-accent: #ff6b6b;
+  --diagram-brass: #e7c98f;
   --btn-primary-bg: #f4f0e8;
   --btn-primary-fg: #09090c;
   --win-bg: #000000;
@@ -87,6 +92,11 @@
   --accent-fg: #ffffff;
   --brass: #8f6b32;
   --brass-muted: rgba(143, 107, 50, 0.28);
+  --diagram-surface: #f1eadc;
+  --diagram-panel: #fcfaf5;
+  --diagram-border: #d5ccb9;
+  --diagram-accent: #b81d1d;
+  --diagram-brass: #8a6428;
   --btn-primary-bg: #14120f;
   --btn-primary-fg: #fcfaf5;
   --win-bg: #0a0a0a;
@@ -117,6 +127,7 @@
   body {
     background-color: var(--bg-page);
     color: var(--text-primary);
+    overflow-x: clip;
   }
 
   ::selection {
@@ -183,20 +194,34 @@
   z-index: 0;
 }
 
-.collector-card-interactive:hover,
 .collector-card-interactive:focus-within {
   z-index: 20;
-  transform: translate3d(0, 0, 0) scale(1.018);
-  transition:
-    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    z-index 0ms linear 0ms;
 }
 
-.collector-card-interactive:hover::after,
-.collector-card-interactive:focus-within::after {
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .collector-card-interactive:hover,
+  .collector-card-interactive:focus-within {
+    z-index: 20;
+    transform: translate3d(0, 0, 0) scale(1.012);
+    transition:
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+      z-index 0ms linear 0ms;
+  }
+
+  .collector-card-interactive:hover::after,
+  .collector-card-interactive:focus-within::after {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .collector-card-interactive:active {
+    transform: translate3d(0, 0, 0) scale(0.992);
+    opacity: 0.94;
+    transition: transform 140ms ease, opacity 140ms ease;
+  }
 }
 
 /* Silky 60fps whole-item scaling for top cover shelf */
@@ -212,13 +237,31 @@
     z-index 0ms linear 340ms;
 }
 
-.cover-rail-item:hover,
 .cover-rail-item:focus-visible {
   z-index: 20;
-  transform: translate3d(0, 0, 0) scale(1.045);
-  transition:
-    transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
-    z-index 0ms linear 0ms;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cover-rail-item:hover,
+  .cover-rail-item:focus-visible {
+    z-index: 20;
+    transform: translate3d(0, 0, 0) scale(1.035);
+    transition:
+      transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+      z-index 0ms linear 0ms;
+  }
+}
+
+@media (hover: none) {
+  .cover-rail-item:active {
+    transform: translate3d(0, 0, 0) scale(0.98);
+    opacity: 0.92;
+    transition: transform 140ms ease, opacity 140ms ease;
+  }
+}
+
+.safe-bottom {
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
 }
 
 .cover-plate-shadow {

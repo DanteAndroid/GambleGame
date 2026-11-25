@@ -14,6 +14,25 @@ const SERIES_SEARCH_ALIASES: Record<MangaSeriesId, string> = {
   'alice-in-borderland': '弥留之国的爱丽丝 今際の国のアリス alice in borderland 麻生羽吕 有栖良平 苣屋骏太郎',
   'gambling-emperor-zero': '赌博霸王传 零 賭博覇王伝 零 zero 宇海零 福本伸行 梦想王国',
   'one-outs': '超智游戏 one outs oneouts 渡久地东亚 甲斐谷忍 棒球 彩珠',
+  'acma-game': '恶魔游戏 acma game acmagame アクマゲーム meeb 惠广史 织田照朝 上杉潜夜 恶魔之钥 冈格尼尔',
+};
+
+const GAMBLE_SEARCH_ALIASES: Record<string, string> = {
+  'e-card': 'e卡 ecard 皇帝奴隶 皇帝与奴隶',
+  'surpassing-the-leader': '屋形越 丢手绢 以下犯上 临死药',
+  'kaiji-one-poker': 'one poker onepoker 单张扑克',
+  'minotaur-labyrinth': '米诺陶诺斯迷宫 米诺陶洛斯迷宫 牛头怪迷宫',
+  'bulls-womb': '斗牛子宫 公牛子宫 铜牛',
+  'hand-chopper': '切手台 断手台 断腕台',
+  'the-bog-pachinko': '人食沼泽 食人沼泽 沼泽 弹珠机',
+  'kakegurui-finger-guillotine': '指断台 断指台',
+  'kakegurui-nim-type-zero': '零式尼姆 尼姆零式',
+  'kakegurui-auction': '百票盲拍 百票拍卖',
+  'tomodachi-snow-cabin': '雪山木屋最终战 无友游戏',
+  'alice-k-diamonds-beauty-contest': '方块k天秤 方块k天平 凯恩斯选美',
+  'acma-judge-and-fire': '金枪银枪 金枪与银枪 金の銃 银の銃',
+  'acma-five-spell-survival': '五字战斗 5spell 万中五选 5スペル',
+  'acma-word-investigation': '三词究明 猜词 三个单词',
 };
 
 function normalizeText(raw: string): string {
@@ -122,6 +141,7 @@ function scoreTokenAgainstRecord(
     item.title,
     item.japaneseTitle,
     SERIES_SEARCH_ALIASES[item.seriesId],
+    GAMBLE_SEARCH_ALIASES[item.id] ?? '',
     item.arcName,
     item.winner.name,
     item.winner.epithet,
@@ -274,6 +294,7 @@ export function getSeriesCounts(
     'alice-in-borderland': 0,
     'gambling-emperor-zero': 0,
     'one-outs': 0,
+    'acma-game': 0,
   };
 
   for (const record of records) {

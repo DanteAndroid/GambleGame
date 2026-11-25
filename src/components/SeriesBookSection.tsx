@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import type { GambleRecord, MangaSeriesInfo } from '../types/gamble';
+import { getThumbImageUrl } from '../utils/imageUrl';
 
 interface SeriesBookSectionProps {
   series: MangaSeriesInfo;
@@ -25,71 +26,114 @@ export function SeriesBookSection({
     <section
       aria-labelledby="series-book-heading"
       data-testid="series-book-section"
-      className="w-full bg-[var(--bg-colophon)] text-[#F4F0E8] border-t border-[var(--border-subtle)] py-14 sm:py-16"
+      className="w-full bg-[var(--bg-colophon)] text-[#F4F0E8] border-t border-[var(--border-subtle)] py-10 sm:py-14 lg:py-16"
     >
-      <div className="max-w-[1360px] mx-auto px-5 sm:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-12 items-start">
-          {/* Left: Equal-Height Full-Bleed B6 Manga Cover + Book Info */}
-          <div className="lg:col-span-6 flex flex-col sm:flex-row sm:items-stretch gap-6 sm:gap-7">
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-9 lg:gap-10 xl:gap-12 items-start">
+          {/* Left: Compact Cover+Meta on Mobile, Equal-Height Full-Bleed B6 Cover + Book Info on Desktop */}
+          <div className="lg:col-span-6 grid grid-cols-[88px_1fr] sm:flex sm:flex-row sm:items-stretch gap-x-4 gap-y-4 sm:gap-7">
             <div
               data-testid="series-book-cover"
-              className="w-44 sm:w-[196px] shrink-0 aspect-[128/182] sm:aspect-auto sm:min-h-[278px] bg-[#141418] overflow-hidden ring-1 ring-white/15 cover-plate-shadow"
+              className="w-[88px] sm:w-[184px] shrink-0 aspect-[128/182] sm:aspect-auto sm:min-h-[262px] bg-[#141418] overflow-hidden ring-1 ring-white/15 cover-plate-shadow"
             >
               <img
-                src={series.coverUrl}
+                src={getThumbImageUrl(series.coverUrl)}
                 alt={`《${series.title}》漫画封面`}
+                loading="lazy"
+                decoding="async"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover block"
               />
             </div>
 
+            {/* Mobile-Only Header Identity Next to Compact Cover */}
+            <div className="min-w-0 self-center sm:hidden">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-[#C8A66E]">
+                <span className="tabular-nums tracking-[0.04em]">
+                  {series.era}
+                </span>
+                <span aria-hidden="true" className="text-white/25">
+                  /
+                </span>
+                <span className="text-[#9A9690]">{series.organization}</span>
+              </div>
+              <h2
+                id="series-book-heading"
+                className="mt-1.5 font-display font-normal text-[26px] leading-[1.12] text-white tracking-[0.03em]"
+              >
+                《{series.title}》
+              </h2>
+              <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 text-xs">
+                <span
+                  lang="ja"
+                  translate="no"
+                  className="font-mincho tracking-[0.04em] text-[#9A9690]"
+                >
+                  {series.japaneseTitle}
+                </span>
+                <span aria-hidden="true" className="text-white/20">
+                  /
+                </span>
+                <span className="font-sans text-[#CECDC9]">
+                  <span className="text-[#8E8A84]">作者 </span>
+                  <span className="font-semibold text-white">{series.author}</span>
+                </span>
+              </div>
+            </div>
+
             <div
               data-testid="series-book-info"
-              className="min-w-0 flex-1 flex flex-col justify-between py-0.5"
+              className="col-span-2 sm:col-span-1 min-w-0 flex-1 flex flex-col justify-between py-0.5"
             >
               <div>
-                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11.5px] text-[#C8A66E]">
-                  <span className="tabular-nums tracking-[0.06em]">
-                    {series.era}
-                  </span>
-                  <span aria-hidden="true" className="text-white/25">
-                    /
-                  </span>
-                  <span className="text-[#9A9690]">{series.organization}</span>
-                </div>
-
-                <h2
-                  id="series-book-heading"
-                  className="mt-2 -ml-[0.38em] font-display font-normal text-[32px] sm:text-[38px] leading-[1.12] text-white tracking-[0.03em]"
-                >
-                  《{series.title}》
-                </h2>
-
-                <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs">
-                  <span className="font-mincho tracking-[0.06em] text-[#9A9690]">
-                    {series.japaneseTitle}
-                  </span>
-                  <span aria-hidden="true" className="text-white/20">
-                    /
-                  </span>
-                  <span className="font-sans text-[#CECDC9]">
-                    <span className="text-[#8E8A84]">作者 </span>
-                    <span className="font-semibold text-white">
-                      {series.author}
+                <div className="hidden sm:block">
+                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11.5px] text-[#C8A66E]">
+                    <span className="tabular-nums tracking-[0.06em]">
+                      {series.era}
                     </span>
-                  </span>
+                    <span aria-hidden="true" className="text-white/25">
+                      /
+                    </span>
+                    <span className="text-[#9A9690]">{series.organization}</span>
+                  </div>
+
+                  <h2
+                    id="series-book-heading-desktop"
+                    className="mt-2 -ml-[0.38em] font-display font-normal text-[34px] lg:text-[38px] leading-[1.12] text-white tracking-[0.03em]"
+                  >
+                    《{series.title}》
+                  </h2>
+
+                  <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 text-xs">
+                    <span
+                      lang="ja"
+                      translate="no"
+                      className="font-mincho tracking-[0.06em] text-[#9A9690]"
+                    >
+                      {series.japaneseTitle}
+                    </span>
+                    <span aria-hidden="true" className="text-white/20">
+                      /
+                    </span>
+                    <span className="font-sans text-[#CECDC9]">
+                      <span className="text-[#8E8A84]">作者 </span>
+                      <span className="font-semibold text-white">
+                        {series.author}
+                      </span>
+                    </span>
+                  </div>
                 </div>
 
-                <p className="mt-4 font-sans text-[13.5px] leading-[1.82] text-[#C2BEB7]">
+                <p className="sm:mt-4 font-sans text-[13.5px] leading-[1.82] text-[#C2BEB7]">
                   {series.summary}
                 </p>
               </div>
 
-              <div className="pt-5">
+              <div className="pt-3.5 sm:pt-5">
                 <button
                   type="button"
                   onClick={() => onBrowseSeriesOnHome(series.id)}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#C8A66E] hover:text-white underline underline-offset-4 decoration-[#C8A66E]/40 hover:decoration-white transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 min-h-[40px] text-xs font-medium text-[#C8A66E] hover:text-white underline underline-offset-4 decoration-[#C8A66E]/40 hover:decoration-white transition-colors cursor-pointer"
                 >
                   <span>查看《{series.title}》全部赌局</span>
                   <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
@@ -121,9 +165,9 @@ export function SeriesBookSection({
                     type="button"
                     onClick={() => onSelectGamble(item.id)}
                     aria-current={isCurrent ? 'page' : undefined}
-                    className={`group text-left py-2.5 border-b transition-colors flex items-baseline justify-between gap-3 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                    className={`group text-left min-h-[44px] sm:min-h-[40px] py-2.5 border-b transition-colors flex items-center justify-between gap-3 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                       isCurrent
-                        ? 'bg-[#F4F0E8] text-[#09090C] border-transparent px-2.5 -mx-2.5'
+                        ? 'bg-[#F4F0E8] text-[#09090C] border-transparent px-3 -mx-3 sm:px-2.5 sm:-mx-2.5'
                         : 'border-white/10 text-[#D8D4CC] hover:text-white hover:border-white/40'
                     }`}
                   >

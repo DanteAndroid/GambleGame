@@ -154,6 +154,13 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', activeThemeId);
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute(
+        'content',
+        activeThemeId === 'dark' ? '#09090c' : '#f3eee5'
+      );
+    }
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, activeThemeId);
     } catch {
@@ -519,8 +526,8 @@ export default function App() {
   return (
     <div className="min-h-screen atelier-canvas text-[var(--text-primary)] flex flex-col transition-colors duration-200">
       {/* Slim Brand + Utility Header */}
-      <header className="sticky top-0 z-30 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-subtle)]">
-        <div className="max-w-[1360px] mx-auto px-5 sm:px-8 h-15 flex items-center justify-between gap-6">
+      <header className="sticky top-0 z-30 bg-[var(--bg-header)] backdrop-blur-md border-b border-[var(--border-subtle)] pt-[env(safe-area-inset-top)]">
+        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand Wordmark: 博弈游戏 */}
           <a
             href="#catalog"
@@ -528,25 +535,25 @@ export default function App() {
               e.preventDefault();
               goHome('all');
             }}
-            className="group inline-flex items-center gap-3 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--text-primary)]"
+            className="group inline-flex items-center gap-2 sm:gap-3 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--text-primary)]"
           >
             <span
               aria-hidden="true"
-              className="w-1.5 h-6 bg-[var(--accent)] shrink-0"
+              className="w-1 h-5 sm:w-1.5 sm:h-6 bg-[var(--accent)] shrink-0"
             />
-            <span className="font-display font-normal text-[28px] sm:text-[32px] leading-none tracking-[0.12em] text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
+            <span className="font-display font-normal text-[22px] min-[375px]:text-[25px] sm:text-[30px] leading-none tracking-[0.1em] sm:tracking-[0.12em] text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
               博弈游戏
             </span>
           </a>
 
           {/* Utility Controls: Localhost Admin Entry + Theme + Spoiler */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {canModerate && (
               <button
                 type="button"
                 data-testid="open-moderation-btn"
                 onClick={() => setModerationOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium tracking-wide border border-[var(--brass-muted)] bg-[var(--bg-card)] text-[var(--brass)] hover:border-[var(--brass)] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 min-h-[38px] sm:min-h-[34px] px-2.5 sm:px-3 py-1.5 text-xs font-medium tracking-wide border border-[var(--brass-muted)] bg-[var(--bg-card)] text-[var(--brass)] hover:border-[var(--brass)] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>管理</span>
@@ -571,7 +578,8 @@ export default function App() {
               data-testid="global-spoiler-toggle"
               onClick={handleToggleGlobalSpoiler}
               aria-pressed={spoilerShieldEnabled}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium tracking-wide border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${
+              aria-label={spoilerShieldEnabled ? '防剧透：开启，点击关闭' : '防剧透：关闭，点击开启'}
+              className={`inline-flex items-center justify-center gap-1.5 min-h-[38px] sm:min-h-[34px] px-2.5 sm:px-3 py-1.5 text-xs font-medium tracking-wide border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${
                 spoilerShieldEnabled
                   ? 'bg-[var(--text-primary)] text-[var(--bg-page)] border-[var(--text-primary)] hover:opacity-90'
                   : 'bg-transparent text-[var(--text-primary)] border-[var(--border-strong)] hover:bg-[var(--bg-card)]'
@@ -580,12 +588,14 @@ export default function App() {
               {spoilerShieldEnabled ? (
                 <>
                   <EyeOff className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>防剧透：开</span>
+                  <span className="min-[400px]:hidden">已遮罩</span>
+                  <span className="hidden min-[400px]:inline">防剧透：开</span>
                 </>
               ) : (
                 <>
                   <Eye className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>防剧透：关</span>
+                  <span className="min-[400px]:hidden">防剧透</span>
+                  <span className="hidden min-[400px]:inline">防剧透：关</span>
                 </>
               )}
             </button>
@@ -614,28 +624,36 @@ export default function App() {
             data-testid="gamble-detail-view"
             className="page-reveal"
           >
-            <div className="max-w-[1360px] mx-auto px-5 sm:px-8">
+            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
               {/* Back Navigation + 纠错 Entry Strip */}
-              <div className="pt-5 pb-4 border-b border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-4">
+              <div className="pt-3.5 pb-3 sm:pt-5 sm:pb-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-2 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => goHome()}
-                  className="group inline-flex items-center gap-2 text-[13px] font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                  className="group inline-flex items-center gap-1.5 sm:gap-2 py-1.5 -ml-1 px-1 min-h-[36px] text-[13px] font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0 whitespace-nowrap"
                 >
                   <ArrowLeft
                     className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform"
                     aria-hidden="true"
                   />
-                  <span>返回全部赌局</span>
+                  <span className="min-[380px]:hidden">返回</span>
+                  <span className="hidden min-[380px]:inline">返回全部赌局</span>
                 </button>
 
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                  <p className="text-xs tabular-nums text-[var(--text-muted)]">
-                    《{activeSeries.title}》 ·{' '}
-                    <span className="text-[var(--brass)]">
-                      {String(currentIndex + 1).padStart(2, '0')}
-                    </span>{' '}
-                    / {String(activeSeriesGambles.length).padStart(2, '0')}
+                <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                  <p className="flex items-center gap-1 text-xs tabular-nums text-[var(--text-muted)] min-w-0">
+                    <span className="max-w-[7.5rem] min-[400px]:max-w-[10rem] sm:max-w-none truncate">
+                      《{activeSeries.title}》
+                    </span>
+                    <span aria-hidden="true" className="shrink-0">
+                      ·
+                    </span>
+                    <span className="shrink-0 whitespace-nowrap">
+                      <span className="text-[var(--brass)]">
+                        {String(currentIndex + 1).padStart(2, '0')}
+                      </span>{' '}
+                      / {String(activeSeriesGambles.length).padStart(2, '0')}
+                    </span>
                   </p>
 
                   {!isEditingDetail ? (
@@ -643,19 +661,19 @@ export default function App() {
                       type="button"
                       data-testid="detail-edit-mode-btn"
                       onClick={handleEnterDetailEdit}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:border-[var(--brass)] hover:text-[var(--brass)] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                      className="inline-flex items-center justify-center gap-1.5 min-h-[36px] px-2.5 sm:px-3 py-1.5 text-xs font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:border-[var(--brass)] hover:text-[var(--brass)] transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       <PenLine className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>纠错</span>
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                       <button
                         type="button"
                         data-testid="detail-edit-cancel-btn"
                         onClick={resetDetailEditState}
                         disabled={submittingEdit}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-colors cursor-pointer disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-1 min-h-[36px] px-2.5 sm:px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-colors cursor-pointer disabled:opacity-50"
                       >
                         <X className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>取消编辑</span>
@@ -665,7 +683,7 @@ export default function App() {
                         data-testid="detail-edit-submit-btn"
                         onClick={handleSubmitDetailEdit}
                         disabled={submittingEdit}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] transition-colors cursor-pointer disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-1.5 min-h-[36px] px-3 sm:px-3.5 py-1.5 text-xs font-medium bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] transition-colors cursor-pointer disabled:opacity-50"
                       >
                         <Check className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>{submittingEdit ? '提交中…' : '提交审核'}</span>
@@ -729,10 +747,10 @@ export default function App() {
               <section
                 id="verdict-stage"
                 aria-label="当前赌局封面与规则档案"
-                className="pt-8 sm:pt-11 pb-16 sm:pb-20"
+                className="pt-5 sm:pt-8 lg:pt-10 pb-12 sm:pb-16 lg:pb-20"
               >
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
-                  <div className="lg:col-span-5 lg:sticky lg:top-24">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-7 md:gap-8 lg:gap-11 xl:gap-14 items-start">
+                  <div className="md:col-span-5 md:sticky md:top-20 lg:top-22 w-full max-w-[360px] mx-auto md:max-w-[430px] md:mx-0">
                     <VerdictSpread
                       key={activeGamble.id}
                       gamble={activeGamble}
@@ -753,7 +771,7 @@ export default function App() {
                     />
                   </div>
 
-                  <div className="lg:col-span-7">
+                  <div className="md:col-span-7 min-w-0">
                     <GambleDossier
                       gamble={activeGamble}
                       series={activeSeries}
@@ -790,7 +808,7 @@ export default function App() {
           <div
             key={`catalog-${activeRailId}`}
             data-testid="home-catalog-view"
-            className="page-reveal max-w-[1360px] mx-auto px-5 sm:px-8"
+            className="page-reveal max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8"
           >
             <GambleCatalog
               filteredGambles={filteredGambles}
@@ -827,7 +845,7 @@ export default function App() {
         data-testid="site-footer"
         className="border-t border-[var(--border-subtle)] bg-[var(--bg-page)] text-[var(--text-muted)]"
       >
-        <div className="max-w-[1360px] mx-auto px-5 sm:px-8 py-9 flex flex-col sm:flex-row items-start sm:items-baseline gap-3 sm:gap-6 text-xs leading-[1.85]">
+        <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 safe-bottom flex flex-col sm:flex-row items-start sm:items-baseline gap-3 sm:gap-6 text-xs leading-[1.85]">
           <p className="font-display font-normal text-[22px] leading-none tracking-[0.12em] text-[var(--text-primary)] shrink-0">
             博弈游戏
           </p>

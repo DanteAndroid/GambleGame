@@ -9,6 +9,7 @@ import { EXTRA_GAMBLE_RECORDS } from './extraGambles';
 import { GAMBLE_MEDIA_BY_ID } from './gambleGalleries';
 import { NEW_SERIES_GAMBLES_A } from './newSeriesGamblesA';
 import { NEW_SERIES_GAMBLES_B } from './newSeriesGamblesB';
+import { ACMA_GAME_GAMBLES } from './acmaGameGambles';
 
 const ART = {
   usoguiAbandonedOriginal: '/assets/aistudio/image_e9240f42.png',
@@ -68,7 +69,7 @@ export const MANGA_SERIES: MangaSeriesInfo[] = [
     coverUrl: '/assets/manga/cover_kaiji.jpg',
     signatureLine: '「金は命より重い…！」—— 钱，比命更重……！',
     summary:
-      '福本伸行最具代表性的赌博漫画系列。背负巨额担保债务的底层青年伊藤开司被帝爱集团拉入希望号赌船与地下劳改营，围绕猜拳、E卡、弹珠机、地雷麻将与单张扑克等极简规则，在绝境中直面人性贪婪与生死博弈。',
+      '福本伸行最具代表性的赌博漫画系列。背负巨额担保债务的底层青年伊藤开司被帝爱集团拉入希望号赌船与地下劳改营，围绕猜拳、E-Card、弹珠机、地雷麻将与单张扑克等极简规则，在绝境中直面人性贪婪与生死博弈。',
   },
   {
     id: 'akagi',
@@ -92,7 +93,7 @@ export const MANGA_SERIES: MangaSeriesInfo[] = [
     coverUrl: '/assets/manga/cover_kakegurui.jpg',
     signatureLine: '「さあ、賭け狂いましょう！」—— 来吧，一起赌到疯狂吧！',
     summary:
-      '河本焰原作、尚村透作画的学园原创赌局大赏。在以赌技决定阶级生死的私立百花王学园中，沉醉于纯粹风险与未知快感的转学生蛇喰梦子，接连迎战学生会与百喰一族设计的投票猜拳、生或死转盘、指断台与扉之塔等奇诡博弈。',
+      '河本焰原作、尚村透作画的学园原创赌局大赏。在以赌技决定阶级生死的私立百花王学园中，沉醉于纯粹风险与未知快感的转学生蛇喰梦子，接连迎战学生会与百喰一族设计的投票猜拳、生或死转盘、断指台与扉之塔等奇诡博弈。',
   },
   {
     id: 'tomodachi-game',
@@ -141,6 +142,18 @@ export const MANGA_SERIES: MangaSeriesInfo[] = [
     signatureLine: '「勝負の世界に『まさか』はない。」—— 胜负的世界里，没有「万一」。',
     summary:
       '《欺诈游戏》作者甲斐谷忍的另一部硬核博弈代表作。冲绳街头赌球不败的投手渡久地东亚，与黑心球团老板彩川签下「每夺一出局+500万、每失一分-5000万」的恐怖年薪契约，以心理操控、气象与规则漏洞把职棒赛场化作亿元赌局。',
+  },
+  {
+    id: 'acma-game',
+    title: '恶魔游戏',
+    japaneseTitle: 'ACMA:GAME',
+    author: 'Meeb / 惠广史',
+    era: '2013–2017 · 全22卷',
+    organization: '冈格尼尔（Gungnir）',
+    coverUrl: '/assets/manga/cover_acma_game.jpg',
+    signatureLine: '「悪魔のゲームを始めよう。」—— 恶魔的游戏，现在开始。',
+    summary:
+      'Meeb 原作、惠广史作画的头脑心理战斗代表作。织田集团年轻会长织田照朝围绕传说中拥有 99 把的「恶魔之钥」卷入由恶魔裁决的绝对赌局，凭借洞察规则死角与人性心理，一路破解真伪心眼、百金争夺、五字咒语生存战与三单究明。',
   },
 ];
 
@@ -371,10 +384,10 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     id: 'minotaur-labyrinth',
     archiveCode: 'USOGUI · 04',
     seriesId: 'usogui',
-    title: '米诺陶诺斯迷宫',
+    title: '米诺陶洛斯迷宫',
     japaneseTitle: 'ミノタウロスの迷宮',
     mangaSfx: 'ドゴォン!!',
-    spreadTitleLines: ['地下死斗', '米诺陶诺斯迷宫'],
+    spreadTitleLines: ['地下死斗', '米诺陶洛斯迷宫'],
     arcName: '迷宫篇·后半',
     chapterRange: '第 84–103 话',
     category: '生存逃脱',
@@ -396,24 +409,24 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     ],
     stakesSummary: '「L文件」· 生还权 · 五十亿日元筹码',
     summary:
-      '将纸迷宫放大为真实地下建筑的生死对决。玩家在黑暗的网格房间之间消耗点数开门移动，同时必须避开在迷宫内巡逻的猎杀者「米诺陶诺斯」。',
+      '将纸迷宫放大为真实地下建筑的生死对决。玩家在黑暗的网格房间之间消耗点数开门移动，同时必须避开在迷宫内巡逻的猎杀者「米诺陶洛斯」。',
     oneLineRule:
       '玩家在漆黑的地下网格房间里靠投入点数开门寻路，一边躲避猎杀者追击，一边抢先逃出迷宫。',
     basicRules: [
       '地下场地由多个相互连通的密闭房间构成网格，房间之间全部装有带编号的电子门。',
       '每回合在规定时限内，玩家投入手中持有的点数开启相邻房门并移动到下一间房。',
       '若双方试图同时进入同一房间，或在同格相遇，则按照点数高低与先到顺序触发对抗判定。',
-      '迷宫内额外投放一名无差别袭击的强力打手作为「米诺陶诺斯」，按既定回合机制在房间间移动搜寻玩家。',
+      '迷宫内额外投放一名无差别袭击的强力打手作为「米诺陶洛斯」，按既定回合机制在房间间移动搜寻玩家。',
     ],
     extraInfo: [
       '「迷宫篇」下半场的高潮死斗，收录于单行本第 9 至 10 卷，将上半场的纸面棋盘直接实体化为地下密闭建筑。',
-      '游戏命名取材自古希腊神话中克里特岛囚禁牛头怪「米诺陶诺斯」的代达罗斯迷宫，场内充当怪物的箕轮势一曾是警视厅内部隐藏的危险人物。',
+      '游戏命名取材自古希腊神话中克里特岛囚禁牛头怪「米诺陶洛斯」的代达罗斯迷宫，场内充当怪物的箕轮势一曾是警视厅内部隐藏的危险人物。',
       '此战不仅直接牵出贯穿全作后半段的「L 文件」黑幕，也让零号立会人门仓雄大与马可的格斗名场面成为早期读者津津乐道的经典。',
     ],
     winCondition:
       '率先抵达迷宫指定出口的一方获胜。若对手在迷宫内身亡或丧失行动能力，同样立即判胜。',
     ruleAnalysis: [
-      '迷宫内部照明极暗且每回合设有严格计时（超时即失去行动权），无法靠肉眼俯瞰全局；但电子门开关的声响、时间差与点数消耗仍会暴露坐标，足以用来反推对手与「米诺陶诺斯」的动线。',
+      '迷宫内部照明极暗且每回合设有严格计时（超时即失去行动权），无法靠肉眼俯瞰全局；但电子门开关的声响、时间差与点数消耗仍会暴露坐标，足以用来反推对手与「米诺陶洛斯」的动线。',
       '无差别攻击的猎杀者并非只能被动逃避。只要算准对手的逃生方向与剩余点数，就可以通过封门卡位把猎杀者引向对手所在的密闭房间，借刀杀人。',
     ],
     ending:
@@ -433,18 +446,18 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     ],
     motif: 'maze',
     artworkUrl: ART.usoguiMinotaur,
-    artworkCaption: '黑白漫画大开页插画 · 地下钢门廊道与米诺陶诺斯',
+    artworkCaption: '黑白漫画大开页插画 · 地下钢门廊道与米诺陶洛斯',
     cardImagePosition: 'object-[50%_42%]',
   },
   {
     id: 'bulls-womb',
     archiveCode: 'USOGUI · 05',
     seriesId: 'usogui',
-    title: '斗牛子宫',
+    title: '公牛子宫',
     japaneseTitle: 'ブルズ・ウーム（牡牛の子宮）',
     mangaSfx: 'ゴォォ…',
-    spreadTitleLines: ['灼热铜牛', '斗牛子宫'],
-    arcName: '斗牛子宫篇',
+    spreadTitleLines: ['灼热铜牛', '公牛子宫'],
+    arcName: '公牛子宫篇',
     chapterRange: '第 114–144 话',
     category: '极限机关',
     refereeRole: '立会人',
@@ -613,7 +626,7 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     extraInfo: [
       '《噬谎者》中盘最负盛名的大型长篇战役之一，收录于单行本第 20 至 25 卷，全篇围绕虚构的地标电视塔「帝王塔」展开。',
       '该篇与外围马可、门仓雄大、夜行妃古壹和番代薰等人的立会人混战同步交织，被许多读者视为迫稔雄分镜调度迈入巅峰的转折点。',
-      '斑目貘借此战筹齐了挑战赌郎首领「屋形越」所需的五百亿日元资产门槛，正式把故事推向后期国际化棋局。',
+      '斑目貘借此战筹齐了挑战赌郎首领「以下犯上（屋形越）」所需的五百亿日元资产门槛，正式把故事推向后期国际化棋局。',
     ],
     winCondition:
       '率先积累足够权限并登顶开启五百亿日元密钥的一方获胜。若对手因失血过多或超时出局，则直接判胜。',
@@ -623,7 +636,7 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     ],
     ending:
       '舍隈悟靠监听楼层动静与观察斑目貘心率一路压制。斑目貘察觉后，在生死关头故意演了一场心率飙升、似乎算崩的戏，反向诱使舍隈报出唯一暴露底牌的珠数，最终以一颗珠子之差绝杀登顶，拿走五百亿日元。',
-    closingQuotes: ['五百亿啊…', '刚好够买张去屋形越的船票。'],
+    closingQuotes: ['五百亿啊…', '刚好够买张去以下犯上的船票。'],
     originalQuotes: [
       {
         speaker: '斑目貘',
@@ -735,9 +748,9 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     spoilsBreakdown: [
       '在 12 月 31 日截止时刻坐上原豚岛唯一「皇帝」之位',
       '瓦解拉罗在岛上建立的 BIOS 货币垄断与武力体系',
-      '掌握决定屋形越挑战权归属的终局加赛主动权',
+      '掌握决定「以下犯上（屋形越）」挑战权归属的终局加赛主动权',
     ],
-    stakesSummary: '孤岛皇帝宝座 · BIOS 霸权 · 屋形越资格',
+    stakesSummary: '孤岛皇帝宝座 · BIOS 霸权 · 以下犯上资格',
     summary:
       '《噬谎者》篇幅最宏大的孤岛真人 RPG 赌局。双方作为外部玩家进入被三大王国割据的原豚岛，在二十五天内从底层起步，争夺最终的「皇帝」认证。',
     oneLineRule:
@@ -749,8 +762,8 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     ],
     extraInfo: [
       '全作篇幅最宏大的超长篇战役，横跨单行本第 31 至 40 卷整整百话，以真实岛屿搭建出中世纪 RPG 风格的封闭游戏世界。',
-      '此役汇集了全作几乎全部主要角色与多位赌郎高阶立会人，并在岛内串联起四神包围、斗技场押注、切手台与矛盾游戏等多场支线赌局。',
-      '「原豚岛」之争的胜者将直接取得挑战赌郎首领「屋形越」的唯一资格，因此也是斑目貘与 IDEAL 首领文森特·拉罗的宿命总决算。',
+      '此役汇集了全作几乎全部主要角色与多位赌郎高阶立会人，并在岛内串联起四神包围、斗技场押注、断手台与矛盾游戏等多场支线赌局。',
+      '「原豚岛」之争的胜者将直接取得挑战赌郎首领「以下犯上（屋形越）」的唯一资格，因此也是斑目貘与 IDEAL 首领文森特·拉罗的宿命总决算。',
     ],
     winCondition:
       '在截止时刻成为原豚岛唯一合法认证的「皇帝」即判胜。若双方状态出现僵局或争议，则依立会人裁决进入最终加赛。',
@@ -782,10 +795,10 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     id: 'hand-chopper',
     archiveCode: 'USOGUI · 10',
     seriesId: 'usogui',
-    title: '切手台',
+    title: '断手台',
     japaneseTitle: 'ハンドチョッパー',
     mangaSfx: 'ガチャン!!',
-    spreadTitleLines: ['断腕死斗', '切手台胜负'],
+    spreadTitleLines: ['断腕死斗', '断手台胜负'],
     arcName: '原豚岛·斗技场篇',
     chapterRange: '第 378–395 话',
     category: '极限机关',
@@ -809,9 +822,9 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     summary:
       '原豚岛斗技场内最惊险的独立单挑。梶隆臣将右手伸入悬着钢刃的木制断腕台，在倒计时与筹码加注的双重压力下，与赌徒弗洛伊德·李展开胆量对决。',
     oneLineRule:
-      '挑战者将手伸进悬刃断腕台内与对手轮流加注，比拼谁敢顶住落刃风险坚持到最后。',
+      '挑战者将手伸进悬刃断手台内与对手轮流加注，比拼谁敢顶住落刃风险坚持到最后。',
     basicRules: [
-      '游戏开始前，挑战者须将一只手伸入装有悬空钢刃的木制「切手台」锁具内。',
+      '游戏开始前，挑战者须将一只手伸入装有悬空钢刃的木制「断手台」锁具内。',
       '对局按回合推进，双方轮流追加 BIOS 筹码或选择抽手认输。',
       '若选择继续跟注，奖池倍率随之提高；一旦触发机关失败，悬刃将瞬间落下斩断手腕。',
       '在机关触发前主动抽手退缩的一方保住手腕，但赔掉已投入的全部筹码。',
@@ -824,7 +837,7 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     winCondition:
       '逼迫对手先行弃权认输，或在机关触发前按规则赢得全部奖池的一方获胜。',
     ruleAnalysis: [
-      '切手台属于典型的胆小鬼博弈（Chicken Game），刑具锁具与读秒、高额加注直接联动。筹码更厚的一方天然占据心理优势，可以通过连续重注把对手逼到「不退便可能断手」的临界点。',
+      '断手台属于典型的胆小鬼博弈（Chicken Game），刑具锁具与读秒、高额加注直接联动。筹码更厚的一方天然占据心理优势，可以通过连续重注把对手逼到「不退便可能断手」的临界点。',
       '劣势方想逆转，必须反向利用对手「笃定你不敢真拼命」的心理预期：稳住呼吸与肌肉反应、毫不犹豫地反压加码，便能把恐惧反推给原本占优的一方。',
     ],
     ending:
@@ -844,7 +857,7 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     ],
     motif: 'hangman',
     artworkUrl: ART.usoguiHandChopper,
-    artworkCaption: '黑白漫画大开页插画 · 悬刃断腕台、秒表与 BIOS 硬币',
+    artworkCaption: '黑白漫画大开页插画 · 悬刃断手台、秒表与 BIOS 硬币',
     cardImagePosition: 'object-[50%_46%]',
   },
   {
@@ -868,13 +881,13 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
       epithet: 'IDEAL 首领',
       name: '文森特·拉罗',
     },
-    spoils: '赌郎「屋形越」最终挑战权 + 原豚岛与 IDEAL 全部霸权',
+    spoils: '赌郎「以下犯上（屋形越）」最终挑战权 + 原豚岛与 IDEAL 全部霸权',
     spoilsBreakdown: [
-      '获得挑战赌郎首领「屋形越」的唯一资格',
+      '获得挑战赌郎首领「以下犯上（屋形越）」的唯一资格',
       '彻底击垮跨国犯罪组织 IDEAL，接管原豚岛既得资产',
       '拉罗在海底耗尽最后一口空气溺亡，孤岛之争落幕',
     ],
-    stakesSummary: '屋形越挑战权 · 原豚岛霸权 · 对手性命',
+    stakesSummary: '以下犯上挑战权 · 原豚岛霸权 · 对手性命',
     summary:
       '原豚岛篇的终极加赛。两位主玩家被困在海底水舱中以「空气」下注，打出印着点数总和的金属牌；海面上各自的搭档在完全隔绝的情况下，须将总和拆成五张真实扑克牌比大小。',
     oneLineRule:
@@ -887,7 +900,7 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     ],
     extraInfo: [
       '《噬谎者》公认口碑最高、构思最精密的巅峰智斗战，收录于单行本第 40 至 44 卷，作为原豚岛「皇帝认证」僵局后的终局加赛上演。',
-      '本战也是斑目貘与赌郎首领切间创一（HAL）罕见站在同一阵线、隔海完成无声双人配合的宿命搭档战，为随后的「屋形越」二人最终对决拉满了戏剧张力。',
+      '本战也是斑目貘与赌郎首领切间创一（HAL）罕见站在同一阵线、隔海完成无声双人配合的宿命搭档战，为随后的「以下犯上（屋形越）」二人最终对决拉满了戏剧张力。',
       '原豚岛篇最终反派文森特·拉罗也在此战彻底谢幕，其在海底凝视「钻石」般的败局瞬间被读者奉为全书名场面之一。',
     ],
     winCondition:
@@ -920,11 +933,11 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     id: 'surpassing-the-leader',
     archiveCode: 'USOGUI · 12',
     seriesId: 'usogui',
-    title: '丢手绢',
+    title: '以下犯上',
     japaneseTitle: '屋形越え・ハンカチ落とし',
     mangaSfx: 'チッ… クッ…',
-    spreadTitleLines: ['屋形越', '丢手绢终局'],
-    arcName: '屋形越篇',
+    spreadTitleLines: ['以下犯上', '丢手绢终局'],
+    arcName: '以下犯上篇',
     chapterRange: '第 473–530 话',
     category: '心理博弈',
     refereeRole: '立会人',
@@ -940,12 +953,12 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     spoils: '赌郎首领之位「屋形」+ 掌控整个赌郎组织的最高权力',
     spoilsBreakdown: [
       '斑目貘正式继任赌郎首领「屋形」之位',
-      '了结多年前首次挑战屋形越惨败的旧账',
+      '了结多年前首次挑战「以下犯上（屋形越）」惨败的旧账',
       '接管地下赌博仲裁组织的最高裁决权',
     ],
     stakesSummary: '赌郎首领「屋形」宝座 · 组织最高权力',
     summary:
-      '全作连载十一年的最终决战，原型却是众人皆知的童年游戏「丢手绢」。每回合限时一分钟，何时回头确认身后是否落下手绢，差出的每一秒都将转化为致死的「临死药」剂量。',
+      '全作连载十一年的最终决战「以下犯上（屋形越）」，赌局原型却是众人皆知的童年游戏「丢手绢」。每回合限时一分钟，何时回头确认身后是否落下手绢，差出的每一秒都将转化为致死的「临死药」剂量。',
     oneLineRule:
       '两人轮流扮演丢手绢方与就座方，每回合限时一分钟，守方回头确认越晚累计的死亡秒数越多，满 60 秒即注射临死药。',
     basicRules: [
@@ -955,7 +968,7 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
       '任一方的累计死亡秒数达到或超过 60 秒时，立即注射致死剂量的「临死药」进入假死状态，只能等待零号立会人实施急救复苏。',
     ],
     extraInfo: [
-      '迫稔雄连载十一年《噬谎者》的最终大决战，收录于单行本第 44 至 49 卷，正式兑现了全作从第 1 话起便埋下的「屋形越」终极约定。',
+      '迫稔雄连载十一年《噬谎者》的最终大决战，收录于单行本第 44 至 49 卷，正式兑现了全作从第 1 话起便埋下的「以下犯上（屋形越）」终极约定。',
       '游戏灵感取自日本传统儿童游戏「丢手绢（ハンカチ落とし）」，在极度简朴的规则框架下承载了斑目貘与切间创一长达十余年的宿命恩怨。',
       '作为零号立会人主持此战的夜行妃古壹，同样在本篇迎来了贯穿全书的个人信念收束。',
     ],
@@ -1340,10 +1353,10 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     id: 'e-card',
     archiveCode: 'KAIJI · 02',
     seriesId: 'kaiji',
-    title: 'E卡',
+    title: 'E-Card',
     japaneseTitle: 'Eカード（皇帝と奴隷）',
     mangaSfx: 'バチン!!',
-    spreadTitleLines: ['皇帝与奴隶', 'E卡死斗'],
+    spreadTitleLines: ['皇帝与奴隶', 'E-Card 死斗'],
     arcName: '绝望之城篇',
     chapterRange: '默示录 第 104–144 话',
     category: '心理博弈',
@@ -1377,7 +1390,7 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     extraInfo: [
       '《赌博默示录》第一部「绝望之城篇」的巅峰单挑，收录于单行本第 9 至 12 卷，在动画、藤原龙也主演真人电影中均作为绝对名场面还原。',
       '「烤铁板土下座」与利根川那句「钱比命更重」出自本篇章，后来甚至衍生出了以利根川幸雄为主角的官方外传搞笑漫画《中间管理录利根川》。',
-      '由于仅需十张牌即可游玩，E 卡也是福本伸行笔下在现实桌游与线上对战平台中被还原次数最多的原创游戏之一。',
+      '由于仅需十张牌即可游玩，E-Card（E卡）也是福本伸行笔下在现实桌游与线上对战平台中被还原次数最多的原创游戏之一。',
     ],
     winCondition:
       '打满十二局，保住耳膜并依靠奴隶方的高倍率赢取目标奖金（2000 万日元）即胜。',
@@ -1410,10 +1423,10 @@ const CORE_GAMBLE_RECORDS: GambleRecord[] = [
     id: 'the-bog-pachinko',
     archiveCode: 'KAIJI · 03',
     seriesId: 'kaiji',
-    title: '人食沼泽',
+    title: '食人沼泽',
     japaneseTitle: '人喰いパチンコ「沼」',
     mangaSfx: 'ガキンッ!!',
-    spreadTitleLines: ['人食沼泽', '七亿弹珠机'],
+    spreadTitleLines: ['食人沼泽', '七亿弹珠机'],
     arcName: '破戒录·沼泽篇',
     chapterRange: '破戒录 第 35–134 话',
     category: '极限机关',
@@ -1551,7 +1564,7 @@ const CORE_BY_ID: Record<string, GambleRecord> = Object.fromEntries(
 );
 
 const NEW_SERIES_BY_ID: Record<string, GambleRecord> = Object.fromEntries(
-  [...NEW_SERIES_GAMBLES_A, ...NEW_SERIES_GAMBLES_B].map((record) => [
+  [...NEW_SERIES_GAMBLES_A, ...NEW_SERIES_GAMBLES_B, ...ACMA_GAME_GAMBLES].map((record) => [
     record.id,
     record,
   ])
@@ -1674,6 +1687,21 @@ const CANONICAL_ORDER: string[] = [
   'oneouts-johnson-steal',
   'oneouts-bluemars-cheat',
   'oneouts-ownership-finale',
+  // 《恶魔游戏 ACMA:GAME》全 14 场（第 1 卷开篇至第 22 卷终战）
+  'acma-true-or-false',
+  'acma-shadow-step',
+  'acma-five-one',
+  'acma-hundred-contest',
+  'acma-hide-and-see',
+  'acma-pour-to-limit',
+  'acma-judge-and-fire',
+  'acma-basket-fruits',
+  'acma-clay-dialogue',
+  'acma-shiritori-drawing',
+  'acma-mascot-hide-seek',
+  'acma-silent-staring',
+  'acma-five-spell-survival',
+  'acma-word-investigation',
 ];
 
 const SERIES_PREFIX: Record<MangaSeriesId, string> = {
@@ -1686,6 +1714,7 @@ const SERIES_PREFIX: Record<MangaSeriesId, string> = {
   'alice-in-borderland': 'BORDERLAND',
   'gambling-emperor-zero': 'ZERO',
   'one-outs': 'ONEOUTS',
+  'acma-game': 'ACMA',
 };
 
 const seriesCounters: Record<MangaSeriesId, number> = {
@@ -1698,6 +1727,7 @@ const seriesCounters: Record<MangaSeriesId, number> = {
   'alice-in-borderland': 0,
   'gambling-emperor-zero': 0,
   'one-outs': 0,
+  'acma-game': 0,
 };
 
 export const GAMBLE_RECORDS: GambleRecord[] = CANONICAL_ORDER.map((id) => {

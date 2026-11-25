@@ -7,7 +7,8 @@ export type MangaSeriesId =
   | 'tomodachi-game'
   | 'alice-in-borderland'
   | 'gambling-emperor-zero'
-  | 'one-outs';
+  | 'one-outs'
+  | 'acma-game';
 
 export type GambleCategory =
   | '全部类型'
@@ -104,6 +105,28 @@ export interface UpcomingMangaSeries {
   plannedGambles: string[];
   note: string;
   initialVotes: number;
+}
+
+export interface WorldTerm {
+  term: string;
+  desc: string;
+}
+
+export interface SeriesBackgroundInfo {
+  premise: string;
+  keyTerms: WorldTerm[];
+}
+
+export interface BackgroundCharacter {
+  name: string;
+  role: string;
+}
+
+export interface GambleBackgroundInfo {
+  /** 无剧透的前情提要：为何走上赌桌、故事节点与赌注前提 */
+  setup: string;
+  /** 开局入场时的核心人物身份与动机（严禁包含胜负剧透） */
+  characters: BackgroundCharacter[];
 }
 
 export interface GambleFilterState {

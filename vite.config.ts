@@ -9,21 +9,35 @@ export default defineConfig(() => {
     plugins: [
       react(),
       tailwindcss(),
-      // Copies src/assets into dist/ so root-relative URLs like
-      // "/src/assets/images/..." (e.g. generate_image output) still resolve
-      // in production builds. Do not remove.
       {
-        name: 'copy-unbundled-src-assets',
+        name: 'prune-dist-unreferenced-assets',
         apply: 'build',
         closeBundle(error?: Error): void {
           if (error) {
             return;
           }
           const distDir = path.resolve(__dirname, 'dist');
-          const srcAssets = path.resolve(__dirname, 'src/assets');
-          const distAssets = path.resolve(distDir, 'src/assets');
-          if (fs.existsSync(distDir) && fs.existsSync(srcAssets)) {
-            fs.cpSync(srcAssets, distAssets, {recursive: true, force: true});
+          if (!fs.existsSync(distDir)) return;
+
+          // Prune legacy un-subsetted fonts so only *-subset.woff2 ship to CDN
+          const distFontsDir = path.join(distDir, 'fonts');
+          if (fs.existsSync(distFontsDir)) {
+            for (const entry of fs.readdirSync(distFontsDir)) {
+              if (!entry.endsWith('-subset.woff2')) {
+                fs.rmSync(path.join(distFontsDir, entry), { force: true, recursive: true });
+              }
+            }
+          }
+
+          // Prune raw unoptimized originals replaced by /assets/opt/{thumb,display}/*.webp
+          const distAssetsDir = path.join(distDir, 'assets');
+          if (fs.existsSync(path.join(distAssetsDir, 'opt'))) {
+            for (const legacyDir of ['manga', 'aistudio']) {
+              const target = path.join(distAssetsDir, legacyDir);
+              if (fs.existsSync(target)) {
+                fs.rmSync(target, { force: true, recursive: true });
+              }
+            }
           }
         },
       },

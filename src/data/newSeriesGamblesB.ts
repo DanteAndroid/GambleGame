@@ -604,10 +604,10 @@ export const NEW_SERIES_GAMBLES_B: GambleRecord[] = [
     id: 'alice-k-diamonds-beauty-contest',
     archiveCode: 'ALICE · 07',
     seriesId: 'alice-in-borderland',
-    title: '方块K·天秤',
+    title: '方块K·天平',
     japaneseTitle: 'だいやのK・てんびん（美人投票）',
     mangaSfx: 'ドボォッ…',
-    spreadTitleLines: ['凯恩斯选美', '方块K·天秤'],
+    spreadTitleLines: ['凯恩斯选美', '方块K·天平'],
     arcName: '方块K篇',
     chapterRange: '第 50–55 话',
     category: '心理博弈',
@@ -643,12 +643,12 @@ export const NEW_SERIES_GAMBLES_B: GambleRecord[] = [
     ],
     ending:
       '在最后只剩苣屋与九头龙的一对一死局中，苣屋直接摊牌亮出自己要选的数字，把生杀大权与「是否按自己理想行事」的伦理拷问彻底抛给九头龙；九头龙选择忠于内心原则，坦然赴死成全了苣屋。',
-    closingQuotes: ['这一轮我选什么，直接告诉你好了…', '接下来，看你自己的天秤往哪边倾。'],
+    closingQuotes: ['这一轮我选什么，直接告诉你好了…', '接下来，看你自己的天平往哪边倾。'],
     originalQuotes: [
       {
         speaker: '九头龙慧一（方块K）',
         jp: '「命の価値はすべて平等だ……誰にも、他人の命を秤にかける権利などない。」',
-        cn: '「生命的价值一律平等……任何人都没有资格把别人的性命放上天秤。」',
+        cn: '「生命的价值一律平等……任何人都没有资格把别人的性命放上天平。」',
       },
       {
         speaker: '苣屋骏太郎',
@@ -658,7 +658,7 @@ export const NEW_SERIES_GAMBLES_B: GambleRecord[] = [
     ],
     motif: 'ballot',
     artworkUrl: '/assets/manga/alice_kdiamonds.jpg',
-    artworkCaption: '《弥留之国的爱丽丝》单行本原版插画 · 方块K·天秤',
+    artworkCaption: '《弥留之国的爱丽丝》单行本原版插画 · 方块K·天平',
   },
   {
     id: 'alice-k-spades-survival',

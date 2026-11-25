@@ -1,6 +1,7 @@
 import { ArrowUp } from 'lucide-react';
 import type { UpcomingMangaSeries } from '../types/gamble';
 import { getUpcomingVoteCount } from '../utils/gambleFilters';
+import { getThumbImageUrl } from '../utils/imageUrl';
 
 interface UpcomingShelfProps {
   upcomingSeries: readonly UpcomingMangaSeries[];
@@ -23,16 +24,16 @@ export function UpcomingShelf({
     <section
       id="upcoming"
       aria-labelledby="upcoming-heading"
-      className="pt-16 pb-24 border-t border-[var(--border-subtle)]"
+      className="pt-12 sm:pt-16 pb-16 sm:pb-24 border-t border-[var(--border-subtle)]"
     >
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-9">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-7 sm:pb-9">
         <div>
           <p className="text-[11px] tracking-[0.14em] text-[var(--brass)] mb-2">
             排期典藏 · 敬请期待
           </p>
           <h2
             id="upcoming-heading"
-            className="font-display font-normal text-[36px] sm:text-[44px] text-[var(--text-primary)] tracking-[0.04em] leading-none"
+            className="font-display font-normal text-[32px] sm:text-[42px] text-[var(--text-primary)] tracking-[0.04em] leading-none"
           >
             待收录作品书架
           </h2>
@@ -43,7 +44,7 @@ export function UpcomingShelf({
       </div>
 
       {/* Collector Cards with Verified Vol.1 Covers */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {upcomingSeries.map((item) => {
           const isVoted = votedSeriesIds.includes(item.id);
           const voteCount = getUpcomingVoteCount(
@@ -67,8 +68,10 @@ export function UpcomingShelf({
                     className="w-[76px] shrink-0 aspect-[128/182] overflow-hidden bg-[var(--bg-img)] cover-plate-shadow ring-1 ring-[var(--img-ring)] cursor-pointer group"
                   >
                     <img
-                      src={item.coverUrl}
+                      src={getThumbImageUrl(item.coverUrl)}
                       alt={`《${item.title}》漫画封面`}
+                      loading="lazy"
+                      decoding="async"
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover block group-hover:scale-[1.04] transition-transform duration-300"
                     />
@@ -87,7 +90,11 @@ export function UpcomingShelf({
                     <h3 className="mt-1.5 -ml-[0.35em] font-mincho font-normal text-[20px] leading-snug text-[var(--text-primary)]">
                       《{item.title}》
                     </h3>
-                    <p className="text-[11.5px] font-mincho tracking-[0.04em] text-[var(--text-muted)] mt-1 truncate">
+                    <p
+                      lang="ja"
+                      translate="no"
+                      className="text-[11.5px] font-mincho tracking-[0.04em] text-[var(--text-muted)] mt-1 truncate"
+                    >
                       {item.japaneseTitle}
                     </p>
                   </div>
@@ -133,7 +140,7 @@ export function UpcomingShelf({
                   onClick={() => onToggleVote(item.id)}
                   aria-pressed={isVoted}
                   aria-label={`${isVoted ? '取消投票' : '投票催更'}《${item.title}》`}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${
+                  className={`inline-flex items-center justify-center gap-1.5 min-h-[38px] px-3.5 py-1.5 text-xs font-medium border transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${
                     isVoted
                       ? 'bg-[var(--accent)] text-[var(--accent-fg)] border-[var(--accent)] hover:bg-[var(--accent-hover)]'
                       : 'bg-[var(--bg-card)] text-[var(--text-primary)] border-[var(--border-subtle)] hover:border-[var(--border-strong)]'

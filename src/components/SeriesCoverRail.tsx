@@ -5,6 +5,7 @@ import type {
   MangaSeriesInfo,
   UpcomingMangaSeries,
 } from '../types/gamble';
+import { getThumbImageUrl } from '../utils/imageUrl';
 
 export type ShelfSelectionId = 'all' | MangaSeriesId | string;
 
@@ -62,9 +63,9 @@ export function SeriesCoverRail({
     el.scrollBy({ left: direction * 520, behavior: 'smooth' });
   };
 
-  // Reduced 20% from previous 290px desktop width -> crisp 232px HD B6 cover plates
+  // Crisp HD B6 cover plates scaled across viewports (2.6x mobile, 5+ desktop)
   const itemBaseClass =
-    'group cover-rail-item shrink-0 w-[168px] sm:w-[208px] lg:w-[232px] text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--text-primary)]';
+    'group cover-rail-item shrink-0 w-[122px] min-[400px]:w-[132px] sm:w-[168px] lg:w-[202px] xl:w-[214px] snap-start text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--text-primary)]';
 
   const mosaicSeries = liveSeries.slice(0, 9);
 
@@ -74,7 +75,7 @@ export function SeriesCoverRail({
       data-testid="series-cover-rail"
       className="relative border-b border-[var(--border-subtle)] bg-[var(--bg-shelf)]/75"
     >
-      <div className="max-w-[1360px] mx-auto px-5 sm:px-8 py-1.5 sm:py-2 relative">
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8 py-1 sm:py-2 relative">
         {/* Scroll Left Button */}
         {canScrollLeft && (
           <button
@@ -82,7 +83,7 @@ export function SeriesCoverRail({
             onClick={() => scrollByAmount(-1)}
             aria-label="向左滚动作品列表"
             data-testid="rail-scroll-left"
-            className="hidden md:inline-flex items-center justify-center absolute left-2 top-[44%] -translate-y-1/2 z-30 w-9 h-9 bg-[var(--bg-page)]/94 text-[var(--text-primary)] border border-[var(--border-strong)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors cursor-pointer shadow-lg"
+            className="hidden md:inline-flex items-center justify-center absolute left-2 top-[42%] -translate-y-1/2 z-30 w-10 h-10 bg-[var(--bg-page)]/94 text-[var(--text-primary)] border border-[var(--border-strong)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors cursor-pointer shadow-lg"
           >
             <ChevronLeft className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -95,7 +96,7 @@ export function SeriesCoverRail({
             onClick={() => scrollByAmount(1)}
             aria-label="向右滚动作品列表"
             data-testid="rail-scroll-right"
-            className="hidden md:inline-flex items-center justify-center absolute right-2 top-[44%] -translate-y-1/2 z-30 w-9 h-9 bg-[var(--bg-page)]/94 text-[var(--text-primary)] border border-[var(--border-strong)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors cursor-pointer shadow-lg"
+            className="hidden md:inline-flex items-center justify-center absolute right-2 top-[42%] -translate-y-1/2 z-30 w-10 h-10 bg-[var(--bg-page)]/94 text-[var(--text-primary)] border border-[var(--border-strong)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors cursor-pointer shadow-lg"
           >
             <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -105,7 +106,7 @@ export function SeriesCoverRail({
         {canScrollLeft && (
           <div
             aria-hidden="true"
-            className="pointer-events-none hidden sm:block absolute left-0 top-0 bottom-0 w-14 bg-gradient-to-r from-[var(--bg-shelf)] to-transparent z-10"
+            className="pointer-events-none hidden sm:block absolute left-0 top-0 bottom-0 w-12 lg:w-14 bg-gradient-to-r from-[var(--bg-shelf)] to-transparent z-10"
           />
         )}
 
@@ -113,15 +114,15 @@ export function SeriesCoverRail({
         {canScrollRight && (
           <div
             aria-hidden="true"
-            className="pointer-events-none hidden sm:block absolute right-0 top-0 bottom-0 w-14 bg-gradient-to-l from-[var(--bg-shelf)] to-transparent z-10"
+            className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 sm:w-14 bg-gradient-to-l from-[var(--bg-shelf)] to-transparent z-10"
           />
         )}
 
-        {/* Horizontally Scrollable Cover Strip with Ample Safe Padding for Unclipped Hover Scaling */}
+        {/* Horizontally Scrollable Cover Strip with Negative Margin Alignment & Safe Hover Padding */}
         <div
           ref={trackRef}
           data-testid="series-cover-track"
-          className="flex items-start gap-5 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth py-6 px-5"
+          className="flex items-start gap-3.5 sm:gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-proximity -mx-4 px-4 sm:-mx-4 sm:px-4 py-4 sm:py-5 lg:py-6"
         >
           {/* 0. All Works Collector Plate (3x3 9-Volume Mosaic) */}
           <button
@@ -142,28 +143,30 @@ export function SeriesCoverRail({
                 {mosaicSeries.map((s) => (
                   <img
                     key={s.id}
-                    src={s.coverUrl}
+                    src={getThumbImageUrl(s.coverUrl)}
                     alt=""
                     aria-hidden="true"
+                    loading="eager"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover block"
                   />
                 ))}
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/58 to-black/35 flex flex-col items-center justify-center p-3 text-center">
-                <span className="font-display text-[40px] sm:text-[48px] leading-none text-[#F4F0E8] tracking-[0.14em] pl-[0.14em]">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/58 to-black/35 flex flex-col items-center justify-center p-2.5 sm:p-3 text-center">
+                <span className="font-display text-[28px] min-[400px]:text-[32px] sm:text-[40px] lg:text-[44px] leading-none text-[#F4F0E8] tracking-[0.14em] pl-[0.14em]">
                   全部
                 </span>
-                <span className="mt-3 w-8 h-[1px] bg-[var(--brass)]" />
-                <span className="mt-2.5 tabular-nums text-[11px] sm:text-[12px] font-medium tracking-[0.06em] text-[#C8A66E] whitespace-nowrap">
+                <span className="mt-2 sm:mt-3 w-6 sm:w-8 h-[1px] bg-[var(--brass)]" />
+                <span className="mt-2 sm:mt-2.5 tabular-nums text-[10px] min-[400px]:text-[10.5px] sm:text-[11.5px] font-medium tracking-[0.04em] text-[#C8A66E] whitespace-nowrap">
                   {liveSeries.length}部作品 · {seriesCounts.all}个赌局
                 </span>
               </div>
             </div>
 
-            <div className="mt-3 px-0.5">
+            <div className="mt-2 sm:mt-2.5 px-0.5">
               <p
-                className={`text-[14.5px] font-medium truncate transition-colors ${
+                className={`text-[13px] sm:text-[14.5px] font-medium truncate transition-colors ${
                   selectedId === 'all'
                     ? 'text-[var(--text-primary)]'
                     : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'
@@ -171,14 +174,14 @@ export function SeriesCoverRail({
               >
                 全部作品
               </p>
-              <p className="mt-0.5 text-[12px] tabular-nums text-[var(--brass)]">
+              <p className="mt-0.5 text-[11px] sm:text-[12px] tabular-nums text-[var(--brass)] truncate">
                 {seriesCounts.all}个赌局
               </p>
             </div>
           </button>
 
           {/* 1–9. Canonical Live Manga Works (HD Vol.1 Covers) */}
-          {liveSeries.map((series) => {
+          {liveSeries.map((series, idx) => {
             const active = selectedId === series.id;
             return (
               <button
@@ -197,17 +200,20 @@ export function SeriesCoverRail({
                   }`}
                 >
                   <img
-                    src={series.coverUrl}
+                    src={getThumbImageUrl(series.coverUrl)}
                     alt={`《${series.title}》单行本封面`}
+                    loading={idx < 5 ? 'eager' : 'lazy'}
+                    fetchPriority={idx < 3 ? 'high' : 'auto'}
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover block"
                   />
                 </div>
 
-                <div className="mt-3 px-0.5">
+                <div className="mt-2 sm:mt-2.5 px-0.5">
                   <p
                     title={series.title}
-                    className={`text-[14.5px] font-medium truncate transition-colors ${
+                    className={`text-[13px] sm:text-[14.5px] font-medium truncate transition-colors ${
                       active
                         ? 'text-[var(--accent)]'
                         : 'text-[var(--text-primary)] group-hover:text-[var(--accent)]'
@@ -215,7 +221,7 @@ export function SeriesCoverRail({
                   >
                     {series.title}
                   </p>
-                  <p className="mt-0.5 text-[12px] tabular-nums text-[var(--text-muted)]">
+                  <p className="mt-0.5 text-[11px] sm:text-[12px] tabular-nums text-[var(--text-muted)] truncate">
                     {seriesCounts[series.id]}个赌局 · {series.author}
                   </p>
                 </div>
@@ -249,8 +255,10 @@ export function SeriesCoverRail({
                       }`}
                     >
                       <img
-                        src={item.coverUrl}
+                        src={getThumbImageUrl(item.coverUrl)}
                         alt={`《${item.title}》单行本封面`}
+                        loading="lazy"
+                        decoding="async"
                         referrerPolicy="no-referrer"
                         className={`w-full h-full object-cover block transition-[filter,opacity] duration-200 ${
                           active

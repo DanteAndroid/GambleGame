@@ -3,6 +3,9 @@ import path from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GAMBLE_RECORDS, MANGA_SERIES, UPCOMING_MANGA_SHELF } from '../data/gambles';
+import { GAMBLE_BACKGROUNDS } from '../data/gambleBackgrounds';
+import { SERIES_BACKGROUNDS } from '../data/seriesBackgrounds';
+import { CUSTOM_DIAGRAM_IDS, hasCustomDiagram } from '../components/GambleFlowDiagram';
 import {
   filterGambles,
   getAdjacentGambleIds,
@@ -14,7 +17,7 @@ import {
   toggleVoteList,
 } from './gambleFilters';
 
-test('getSeriesCounts totals match canonical dataset across all 9 series', () => {
+test('getSeriesCounts totals match canonical dataset across all 10 series', () => {
   const counts = getSeriesCounts(GAMBLE_RECORDS);
   assert.equal(counts.usogui, 21);
   assert.equal(counts['liar-game'], 10);
@@ -25,8 +28,9 @@ test('getSeriesCounts totals match canonical dataset across all 9 series', () =>
   assert.equal(counts['alice-in-borderland'], 13);
   assert.equal(counts['gambling-emperor-zero'], 10);
   assert.equal(counts['one-outs'], 9);
-  assert.equal(counts.all, 101);
-  assert.equal(MANGA_SERIES.length, 9);
+  assert.equal(counts['acma-game'], 14);
+  assert.equal(counts.all, 115);
+  assert.equal(MANGA_SERIES.length, 10);
   assert.equal(UPCOMING_MANGA_SHELF.length, 0);
 });
 
@@ -270,4 +274,91 @@ test('getCardParticipants shows win/lose tags when visible and strips them when 
     new Set([hidden[0].name, hidden[1].name]),
     new Set([sample.winner.name, sample.loser.name])
   );
+});
+
+test('every series and gamble record provides spoiler-free background knowledge', () => {
+  assert.equal(MANGA_SERIES.length, 10);
+  for (const series of MANGA_SERIES) {
+    const world = SERIES_BACKGROUNDS[series.id];
+    assert.ok(world, `Missing SERIES_BACKGROUNDS for ${series.id}`);
+    assert.ok(world.premise.trim().length > 10, `Empty premise for ${series.id}`);
+    assert.ok(world.keyTerms.length >= 2, `Too few keyTerms for ${series.id}`);
+  }
+
+  assert.equal(GAMBLE_RECORDS.length, 115);
+  for (const record of GAMBLE_RECORDS) {
+    const bg = GAMBLE_BACKGROUNDS[record.id];
+    assert.ok(bg, `Missing GAMBLE_BACKGROUNDS for ${record.id}`);
+    assert.ok(bg.setup.trim().length > 20, `Setup too short for ${record.id}`);
+    assert.ok(bg.characters.length >= 2, `Too few characters for ${record.id}`);
+  }
+});
+
+test('filterGambles matches updated Chinese gamble titles and search aliases', () => {
+  const byQuery = (query: string) =>
+    filterGambles(GAMBLE_RECORDS, { seriesId: 'all', category: '全部类型', query }).map((g) => g.id);
+
+  assert.ok(byQuery('以下犯上').includes('surpassing-the-leader'));
+  assert.ok(byQuery('屋形越').includes('surpassing-the-leader'));
+  assert.ok(byQuery('丢手绢').includes('surpassing-the-leader'));
+  assert.ok(byQuery('E-Card').includes('e-card'));
+  assert.ok(byQuery('E卡').includes('e-card'));
+  assert.ok(byQuery('空气扑克').includes('air-poker'));
+  assert.ok(byQuery('单张扑克').includes('kaiji-one-poker'));
+  assert.ok(byQuery('恶魔游戏').includes('acma-true-or-false'));
+  assert.ok(byQuery('ACMA:GAME').includes('acma-five-spell-survival'));
+  assert.ok(byQuery('真伪心眼').includes('acma-true-or-false'));
+  assert.ok(byQuery('金枪银枪').includes('acma-judge-and-fire'));
+  assert.ok(byQuery('三单究明').includes('acma-word-investigation'));
+});
+
+test('custom interactive diagram registry covers all 115 canonical gambles cleanly', async () => {
+  const recordIds = new Set(GAMBLE_RECORDS.map((r) => r.id));
+  assert.equal(CUSTOM_DIAGRAM_IDS.length, GAMBLE_RECORDS.length);
+
+  for (const record of GAMBLE_RECORDS) {
+    assert.equal(hasCustomDiagram(record.id), true, `Missing custom diagram for ${record.id}`);
+  }
+  for (const id of CUSTOM_DIAGRAM_IDS) {
+    assert.ok(recordIds.has(id), `Custom diagram id not in GAMBLE_RECORDS: ${id}`);
+  }
+  assert.equal(hasCustomDiagram('non-existent-gamble'), false);
+
+  // Verify every lazy series module exports exact matching component entries
+  const [usogui, liar, kaiji, akagi, kakegurui, tomodachi, alice, zero, oneOuts, acmaGame] =
+    await Promise.all([
+      import('../components/diagrams/UsoguiDiagrams').then((m) => m.USOGUI_DIAGRAMS),
+      import('../components/diagrams/LiarGameDiagrams').then((m) => m.LIAR_GAME_DIAGRAMS),
+      import('../components/diagrams/KaijiDiagrams').then((m) => m.KAIJI_DIAGRAMS),
+      import('../components/diagrams/AkagiDiagrams').then((m) => m.AKAGI_DIAGRAMS),
+      import('../components/diagrams/KakeguruiDiagrams').then((m) => m.KAKEGURUI_DIAGRAMS),
+      import('../components/diagrams/TomodachiDiagrams').then((m) => m.TOMODACHI_DIAGRAMS),
+      import('../components/diagrams/AliceDiagrams').then((m) => m.ALICE_DIAGRAMS),
+      import('../components/diagrams/ZeroDiagrams').then((m) => m.ZERO_DIAGRAMS),
+      import('../components/diagrams/OneOutsDiagrams').then((m) => m.ONE_OUTS_DIAGRAMS),
+      import('../components/diagrams/AcmaGameDiagrams').then((m) => m.ACMA_GAME_DIAGRAMS),
+    ]);
+
+  const allExportedIds = new Set([
+    'e-card',
+    'surpassing-the-leader',
+    'air-poker',
+    'minority-rule',
+    'minotaur-labyrinth',
+    ...Object.keys(usogui),
+    ...Object.keys(liar),
+    ...Object.keys(kaiji),
+    ...Object.keys(akagi),
+    ...Object.keys(kakegurui),
+    ...Object.keys(tomodachi),
+    ...Object.keys(alice),
+    ...Object.keys(zero),
+    ...Object.keys(oneOuts),
+    ...Object.keys(acmaGame),
+  ]);
+
+  assert.equal(allExportedIds.size, 115);
+  for (const record of GAMBLE_RECORDS) {
+    assert.ok(allExportedIds.has(record.id), `No component exported for ${record.id}`);
+  }
 });

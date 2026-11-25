@@ -1,6 +1,7 @@
 import { useEffect, useId, useState, type ChangeEvent } from 'react';
 import { ChevronLeft, ChevronRight, ImagePlus, Upload, X } from 'lucide-react';
 import type { GambleRecord } from '../types/gamble';
+import { getDisplayImageUrl, getThumbImageUrl, hasLocalAsset } from '../utils/imageUrl';
 import { MangaSilhouette } from './MangaSilhouette';
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -107,7 +108,7 @@ export function VerdictSpread({
   return (
     <figure className="flex flex-col">
       {/* Top Bar: Clean Brass Archival Index Only (Upload & Fullscreen Buttons Removed) */}
-      <div className="flex items-center justify-between gap-4 pb-3 mb-4 border-b border-[var(--border-subtle)]">
+      <div className="flex items-center justify-between gap-4 pb-2.5 mb-3 sm:pb-3 sm:mb-4 border-b border-[var(--border-subtle)]">
         <span className="tabular-nums text-[11px] font-medium tracking-[0.16em] text-[var(--brass)]">
           {gamble.archiveCode}
         </span>
@@ -142,10 +143,13 @@ export function VerdictSpread({
           data-testid="verdict-spread-plate"
           className="relative w-full aspect-[128/182] overflow-hidden bg-[var(--bg-img)]"
         >
-          {!imageFailed ? (
+          {!imageFailed && hasLocalAsset(activeArtUrl) ? (
             <img
-              src={activeArtUrl}
+              src={getDisplayImageUrl(activeArtUrl)}
               alt={displayTitle}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               referrerPolicy="no-referrer"
               onError={() => setImageFailed(true)}
               className={`w-full h-full object-cover block ${
@@ -170,15 +174,19 @@ export function VerdictSpread({
           {/* Bottom Dark Gradient Mask + Oversized Display Gamble Title (平方赖江湖琅琊体) */}
           <div
             data-testid="detail-cover-title-overlay"
-            className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/68 to-transparent pt-32 pb-6 px-5 sm:px-6"
+            className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/68 to-transparent pt-20 sm:pt-28 pb-4 sm:pb-6 px-4 sm:px-5"
           >
-            <div className="flex items-center gap-2.5 mb-2">
-              <span className="w-5 h-[2px] bg-[var(--accent)] shrink-0" />
-              <p className="font-mincho text-[12px] tracking-[0.08em] text-white/80 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)] truncate">
+            <div className="flex items-center gap-2 sm:gap-2.5 mb-1.5 sm:mb-2">
+              <span className="w-4 sm:w-5 h-[2px] bg-[var(--accent)] shrink-0" />
+              <p
+                lang="ja"
+                translate="no"
+                className="font-mincho text-[11px] sm:text-[12px] tracking-[0.08em] text-white/80 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)] truncate"
+              >
                 {gamble.japaneseTitle}
               </p>
             </div>
-            <h1 className="font-display font-normal text-[36px] sm:text-[44px] leading-[1.1] tracking-[0.04em] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]">
+            <h1 className="font-display font-normal text-[28px] min-[400px]:text-[32px] md:text-[34px] xl:text-[40px] leading-[1.12] tracking-[0.04em] text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)]">
               {displayTitle}
             </h1>
           </div>
@@ -198,7 +206,7 @@ export function VerdictSpread({
           <div className="flex flex-wrap items-center gap-2">
             <label
               htmlFor={artworkInputId}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--bg-inset)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 min-h-[38px] px-3 py-1.5 text-xs font-medium bg-[var(--bg-inset)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-colors cursor-pointer"
             >
               <Upload className="w-3.5 h-3.5" aria-hidden="true" />
               <span>{draftArtworkUrl ? '重新选择主图' : '替换本局主图'}</span>
@@ -215,7 +223,7 @@ export function VerdictSpread({
               <button
                 type="button"
                 onClick={onClearDraftArtwork}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] cursor-pointer"
+                className="inline-flex items-center gap-1 min-h-[38px] px-2.5 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] cursor-pointer"
               >
                 <X className="w-3 h-3" aria-hidden="true" />
                 <span>还原主图</span>
@@ -224,7 +232,7 @@ export function VerdictSpread({
 
             <label
               htmlFor={galleryInputId}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--bg-inset)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 min-h-[38px] px-3 py-1.5 text-xs font-medium bg-[var(--bg-inset)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-colors cursor-pointer"
             >
               <ImagePlus className="w-3.5 h-3.5" aria-hidden="true" />
               <span>{draftGalleryUrl ? '更换待追加配图' : '追加原漫配图'}</span>
@@ -241,7 +249,7 @@ export function VerdictSpread({
               <>
                 <label
                   htmlFor={seriesCoverInputId}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--bg-inset)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 min-h-[38px] px-3 py-1.5 text-xs font-medium bg-[var(--bg-inset)] text-[var(--text-secondary)] border border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors cursor-pointer"
                 >
                   <Upload className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>
@@ -279,7 +287,7 @@ export function VerdictSpread({
                   type="button"
                   onClick={onClearDraftGallery}
                   aria-label="移除待追加配图"
-                  className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                  className="w-8 h-8 inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer shrink-0"
                 >
                   <X className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
@@ -307,7 +315,7 @@ export function VerdictSpread({
                   type="button"
                   onClick={onClearDraftSeriesCover}
                   aria-label="移除待更换作品封面"
-                  className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                  className="w-8 h-8 inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer shrink-0"
                 >
                   <X className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
@@ -327,9 +335,9 @@ export function VerdictSpread({
       {gallery.length > 1 && onChangeImageIndex && (
         <div
           aria-label="本局收录的原漫相关画面"
-          className="mt-5 pt-4 border-t border-[var(--border-subtle)]"
+          className="mt-4 pt-3.5 sm:mt-5 sm:pt-4 border-t border-[var(--border-subtle)]"
         >
-          <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3">
             <span className="text-[11px] tabular-nums text-[var(--text-muted)]">
               原漫画面{' '}
               <span className="text-[var(--brass)]">
@@ -337,27 +345,27 @@ export function VerdictSpread({
               </span>{' '}
               / {String(gallery.length).padStart(2, '0')}
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => handleStep(-1)}
                 aria-label="切换上一张原漫画面"
-                className="p-1.5 bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                className="w-9 h-9 sm:w-8 sm:h-8 inline-flex items-center justify-center bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
-                <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />
+                <ChevronLeft className="w-4 h-4 sm:w-3.5 sm:h-3.5" aria-hidden="true" />
               </button>
               <button
                 type="button"
                 onClick={() => handleStep(1)}
                 aria-label="切换下一张原漫画面"
-                className="p-1.5 bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                className="w-9 h-9 sm:w-8 sm:h-8 inline-flex items-center justify-center bg-[var(--bg-card)] text-[var(--text-muted)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
               >
-                <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+                <ChevronRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar snap-x pb-1">
             {gallery.map((imgUrl, idx) => {
               const active = idx === safeIndex;
               return (
@@ -367,15 +375,17 @@ export function VerdictSpread({
                   onClick={() => onChangeImageIndex(idx)}
                   aria-label={`查看第 ${idx + 1} 张原漫画面`}
                   aria-pressed={active}
-                  className={`w-12 aspect-[128/182] shrink-0 overflow-hidden bg-[var(--bg-img)] border transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${
+                  className={`w-[52px] sm:w-12 aspect-[128/182] shrink-0 snap-start overflow-hidden bg-[var(--bg-img)] border transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)] ${
                     active
                       ? 'border-[var(--accent)] ring-1 ring-[var(--accent)] opacity-100'
                       : 'border-[var(--border-subtle)] opacity-55 hover:opacity-100 hover:border-[var(--border-strong)]'
                   }`}
                 >
                   <img
-                    src={imgUrl}
+                    src={getThumbImageUrl(imgUrl)}
                     alt={`${gamble.title} 原漫画面 ${idx + 1}`}
+                    loading="lazy"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover object-top block"
                   />
