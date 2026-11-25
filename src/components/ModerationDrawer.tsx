@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import { Check, ImageUp, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
+import { Check, ImageUp, RotateCcw, SlidersHorizontal, X, ZoomIn } from 'lucide-react';
 import { GAMBLE_RECORDS, MANGA_SERIES, UPCOMING_MANGA_SHELF } from '../data/gambles';
+import { compressImageFileToWebP, formatByteSize } from '../utils/imageCompress';
 import { getThumbImageUrl } from '../utils/imageUrl';
+import { computeTextDiff } from '../utils/textDiff';
 import {
   COPY_FIELD_LABELS,
   type ApprovedOverrides,
@@ -12,7 +14,10 @@ import {
 
 interface ModerationDrawerProps {
   open: boolean;
+  adminToken?: string | null;
+  isLocalhost?: boolean;
   onClose: () => void;
+  onLogout?: () => void;
   onOverridesChanged: (overrides: ApprovedOverrides, pendingCount: number) => void;
 }
 
@@ -41,9 +46,72 @@ function renderFieldValue(val: string | string[] | undefined): string {
   return Array.isArray(val) ? val.join('\n') : val;
 }
 
+function HighlightedDiffView({
+  beforeText,
+  afterText,
+  side,
+}: {
+  beforeText: string;
+  afterText: string;
+  side: 'before' | 'after';
+}) {
+  const segments = useMemo(
+    () => computeTextDiff(beforeText, afterText),
+    [beforeText, afterText]
+  );
+
+  return (
+    <p
+      data-testid={`diff-${side}-text`}
+      className="whitespace-pre-wrap leading-relaxed break-words"
+    >
+      {segments.map((seg, idx) => {
+        if (side === 'before') {
+          if (seg.type === 'added') return null;
+          if (seg.type === 'removed') {
+            return (
+              <del
+                key={idx}
+                className="bg-[var(--accent)]/22 text-[var(--text-primary)] px-0.5 line-through decoration-[var(--accent)]"
+              >
+                {seg.text}
+              </del>
+            );
+          }
+          return (
+            <span key={idx} className="text-[var(--text-muted)]">
+              {seg.text}
+            </span>
+          );
+        }
+
+        if (seg.type === 'removed') return null;
+        if (seg.type === 'added') {
+          return (
+            <ins
+              key={idx}
+              className="no-underline bg-emerald-500/22 text-[var(--text-primary)] px-0.5 font-medium border-b border-emerald-400/70"
+            >
+              {seg.text}
+            </ins>
+          );
+        }
+        return (
+          <span key={idx} className="text-[var(--text-secondary)]">
+            {seg.text}
+          </span>
+        );
+      })}
+    </p>
+  );
+}
+
 export function ModerationDrawer({
   open,
+  adminToken = null,
+  isLocalhost = false,
   onClose,
+  onLogout,
   onOverridesChanged,
 }: ModerationDrawerProps) {
   const [tab, setTab] = useState<'pending' | 'covers' | 'history'>('pending');
@@ -53,6 +121,19 @@ export function ModerationDrawer({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [coverNotice, setCoverNotice] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ src: string; label: string } | null>(null);
+  const [previewDimensions, setPreviewDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+
+  const authHeaders = useMemo<Record<string, string>>(() => {
+    const headers: Record<string, string> = {};
+    if (adminToken) {
+      headers.Authorization = `Bearer ${adminToken}`;
+    }
+    return headers;
+  }, [adminToken]);
 
   const seriesCoverMap = useMemo(() => {
     const map = new Map<string, { title: string; coverUrl: string }>();
@@ -71,14 +152,16 @@ export function ModerationDrawer({
     setLoading(true);
     setErrorMsg(null);
     try {
-      const res = await fetch('/api/moderation/submissions');
+      const res = await fetch('/api/moderation/submissions', {
+        headers: authHeaders,
+      });
       const data = (await res.json()) as {
         submissions?: ContentSubmission[];
         overrides?: ApprovedOverrides;
         error?: string;
       };
       if (!res.ok) {
-        setErrorMsg(data.error ?? '无权访问本机审核接口');
+        setErrorMsg(data.error ?? '无权访问管理后台接口');
         return;
       }
       const list = data.submissions ?? [];
@@ -95,7 +178,7 @@ export function ModerationDrawer({
     } finally {
       setLoading(false);
     }
-  }, [onOverridesChanged]);
+  }, [authHeaders, onOverridesChanged]);
 
   useEffect(() => {
     if (open) {
@@ -104,15 +187,31 @@ export function ModerationDrawer({
   }, [open, fetchModerationData]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setPreviewImage(null);
+      setPreviewDimensions(null);
+      return;
+    }
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (previewImage) {
+          setPreviewImage(null);
+          setPreviewDimensions(null);
+        } else {
+          onClose();
+        }
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, previewImage]);
 
   if (!open) return null;
+
+  const openImagePreview = (src: string, label: string) => {
+    setPreviewDimensions(null);
+    setPreviewImage({ src, label });
+  };
 
   const pendingItems = submissions.filter((s) => s.status === 'pending');
   const historyItems = submissions.filter((s) => s.status !== 'pending');
@@ -123,7 +222,7 @@ export function ModerationDrawer({
     try {
       const res = await fetch(`/api/moderation/submissions/${encodeURIComponent(id)}/${action}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({}),
       });
       const data = (await res.json()) as {
@@ -164,7 +263,7 @@ export function ModerationDrawer({
     try {
       const res = await fetch('/api/moderation/revert', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ type, targetId, imageUrl }),
       });
       const data = (await res.json()) as {
@@ -186,7 +285,7 @@ export function ModerationDrawer({
     }
   };
 
-  const handleDirectSeriesCoverChange = (
+  const handleDirectSeriesCoverChange = async (
     seriesId: string,
     seriesTitle: string,
     e: ChangeEvent<HTMLInputElement>
@@ -194,48 +293,39 @@ export function ModerationDrawer({
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setErrorMsg('仅支持 JPG、PNG 或 WebP 格式图片');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg('单张封面图不能超过 5MB');
-      return;
-    }
 
     setErrorMsg(null);
     setCoverNotice(null);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      if (typeof reader.result !== 'string') return;
-      const busyKey = `cover:${seriesId}`;
-      setBusyId(busyKey);
-      try {
-        const res = await fetch('/api/moderation/series-cover', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ seriesId, imageDataUrl: reader.result }),
-        });
-        const data = (await res.json()) as {
-          overrides?: ApprovedOverrides;
-          error?: string;
-        };
-        if (!res.ok) {
-          setErrorMsg(data.error ?? '封面更新失败');
-          return;
-        }
-        if (data.overrides) {
-          setOverrides(data.overrides);
-          onOverridesChanged(data.overrides, pendingItems.length);
-          setCoverNotice(`已更新《${seriesTitle}》封面`);
-        }
-      } catch {
-        setErrorMsg('网络异常，封面更新失败');
-      } finally {
-        setBusyId(null);
+    const busyKey = `cover:${seriesId}`;
+    setBusyId(busyKey);
+    try {
+      const compressed = await compressImageFileToWebP(file);
+      const res = await fetch('/api/moderation/series-cover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ seriesId, imageDataUrl: compressed.dataUrl }),
+      });
+      const data = (await res.json()) as {
+        overrides?: ApprovedOverrides;
+        error?: string;
+      };
+      if (!res.ok) {
+        setErrorMsg(data.error ?? '封面更新失败');
+        return;
       }
-    };
-    reader.readAsDataURL(file);
+      if (data.overrides) {
+        setOverrides(data.overrides);
+        onOverridesChanged(data.overrides, pendingItems.length);
+        const fmt = compressed.format === 'webp' ? 'WebP' : '原图';
+        setCoverNotice(
+          `已更新《${seriesTitle}》封面（${fmt} · ${compressed.width}×${compressed.height} · ${formatByteSize(compressed.outputBytes)}）`
+        );
+      }
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : '封面更新失败');
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const activeOverrideEntries: Array<{
@@ -296,55 +386,67 @@ export function ModerationDrawer({
       aria-modal="true"
       aria-labelledby="moderation-modal-title"
       data-testid="moderation-drawer"
-      className="modal-backdrop-enter fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-6 bg-black/75 backdrop-blur-sm"
+      className="modal-backdrop-enter fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/75 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal-panel-enter w-full max-w-4xl h-full sm:h-auto max-h-full sm:max-h-[90vh] flex flex-col bg-[var(--bg-card)] border-0 sm:border border-[var(--border-strong)] shadow-2xl overflow-hidden">
+      <div className="modal-panel-enter w-full max-w-4xl max-h-[90vh] flex flex-col bg-[var(--bg-card)] border border-[var(--border-strong)] shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-3 sm:gap-4 bg-[var(--bg-shelf)]">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="px-6 py-4 border-b border-[var(--border-subtle)] flex items-center justify-between gap-4 bg-[var(--bg-shelf)]">
+          <div className="flex items-center gap-3">
             <SlidersHorizontal
               className="w-5 h-5 text-[var(--brass)] shrink-0"
               aria-hidden="true"
             />
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2.5">
                 <h2
                   id="moderation-modal-title"
-                  className="font-mincho font-normal text-[18px] sm:text-[20px] text-[var(--text-primary)]"
+                  className="font-mincho font-normal text-[20px] text-[var(--text-primary)]"
                 >
                   管理后台
                 </h2>
                 <span className="px-2 py-0.5 text-[10.5px] tracking-wide bg-[var(--bg-inset)] text-[var(--brass)] border border-[var(--brass-muted)]">
-                  仅限本机 localhost
+                  {isLocalhost ? '本机 localhost' : '管理员已验证'}
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-[var(--text-muted)] line-clamp-1 sm:line-clamp-none">
-                审核读者提交的纠错记录，管理作品封面与已生效覆盖；仅限本机访问
+              <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                审核读者提交的纠错记录，管理作品封面与已生效覆盖
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="关闭管理后台"
-            className="w-9 h-9 inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
-          >
-            <X className="w-5 h-5" aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-2.5 shrink-0">
+            {!isLocalhost && adminToken && onLogout && (
+              <button
+                type="button"
+                data-testid="admin-logout-btn"
+                onClick={onLogout}
+                className="px-2.5 py-1 text-xs text-[var(--text-muted)] border border-[var(--border-subtle)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-colors cursor-pointer"
+              >
+                退出管理
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="关闭管理后台"
+              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="px-4 sm:px-6 pt-3.5 pb-3 border-b border-[var(--border-hairline)] flex flex-wrap items-center justify-between gap-3">
+        <div className="px-6 pt-4 pb-3 border-b border-[var(--border-hairline)] flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="admin-tab-pending"
               onClick={() => setTab('pending')}
-              className={`min-h-[36px] px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
                 tab === 'pending'
                   ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] border-[var(--btn-primary-bg)] font-semibold'
                   : 'bg-transparent text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
@@ -356,7 +458,7 @@ export function ModerationDrawer({
               type="button"
               data-testid="admin-tab-covers"
               onClick={() => setTab('covers')}
-              className={`min-h-[36px] px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
                 tab === 'covers'
                   ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] border-[var(--btn-primary-bg)] font-semibold'
                   : 'bg-transparent text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
@@ -368,7 +470,7 @@ export function ModerationDrawer({
               type="button"
               data-testid="admin-tab-history"
               onClick={() => setTab('history')}
-              className={`min-h-[36px] px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs border transition-colors cursor-pointer ${
                 tab === 'history'
                   ? 'bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] border-[var(--btn-primary-bg)] font-semibold'
                   : 'bg-transparent text-[var(--text-muted)] border-[var(--border-subtle)] hover:text-[var(--text-primary)]'
@@ -380,14 +482,14 @@ export function ModerationDrawer({
           <button
             type="button"
             onClick={fetchModerationData}
-            className="min-h-[36px] px-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
           >
             刷新
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 space-y-4">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {errorMsg && (
             <p className="px-3.5 py-2.5 text-xs bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/40">
               {errorMsg}
@@ -443,74 +545,116 @@ export function ModerationDrawer({
                     </div>
 
                     {item.note && (
-                      <p className="text-xs text-[var(--text-secondary)] bg-[var(--bg-card)] px-3 py-2 border-l-2 border-[var(--brass)]">
+                      <p className="text-xs text-[var(--text-secondary)] bg-[var(--bg-card)] px-3.5 py-2 border border-[var(--brass-muted)]">
                         备注：{item.note}
                       </p>
                     )}
 
-                    {/* Image Comparison */}
+                    {/* Image Comparison (Click Any Thumbnail to Inspect Full Size) */}
                     {item.imageUrl && (
                       <div className="flex flex-wrap items-start gap-6">
                         {currentCoverUrl && item.type !== 'gamble-gallery' && (
                           <div>
-                            <p className="text-[11px] text-[var(--text-muted)] mb-1.5">当前图片</p>
-                            <div className="w-28 aspect-[128/182] overflow-hidden bg-[var(--bg-img)] ring-1 ring-[var(--img-ring)]">
+                            <p className="text-[11px] text-[var(--text-muted)] mb-1.5">
+                              当前图片（点击放大）
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openImagePreview(currentCoverUrl, `${item.targetLabel} · 当前图片`)
+                              }
+                              aria-label={`放大查看 ${item.targetLabel} 当前图片`}
+                              className="group relative block w-28 aspect-[128/182] overflow-hidden bg-[var(--bg-img)] ring-1 ring-[var(--img-ring)] hover:ring-[var(--brass)] transition-all cursor-zoom-in"
+                            >
                               <img
                                 src={getThumbImageUrl(currentCoverUrl)}
                                 alt="当前图片"
-                                loading="lazy"
-                                decoding="async"
                                 className="w-full h-full object-cover block"
                               />
-                            </div>
+                              <span
+                                aria-hidden="true"
+                                className="absolute right-1.5 bottom-1.5 p-1 bg-black/70 text-[#F4F0E8] opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <ZoomIn className="w-3.5 h-3.5" />
+                              </span>
+                            </button>
                           </div>
                         )}
                         <div>
                           <p className="text-[11px] text-[var(--brass)] mb-1.5">
-                            {item.type === 'gamble-gallery' ? '新增原漫配图' : '投稿新图'}
+                            {item.type === 'gamble-gallery' ? '新增原漫配图' : '投稿新图'}（点击放大）
                           </p>
-                          <div className="w-28 aspect-[128/182] overflow-hidden bg-[var(--bg-img)] ring-2 ring-[var(--brass)]">
+                          <button
+                            type="button"
+                            data-testid={`inspect-submission-img-${item.id}`}
+                            onClick={() =>
+                              openImagePreview(
+                                item.imageUrl!,
+                                `${item.targetLabel} · ${
+                                  item.type === 'gamble-gallery' ? '新增原漫配图' : '投稿新图'
+                                }`
+                              )
+                            }
+                            aria-label={`放大查看 ${item.targetLabel} 投稿新图`}
+                            className="group relative block w-28 aspect-[128/182] overflow-hidden bg-[var(--bg-img)] ring-2 ring-[var(--brass)] cursor-zoom-in"
+                          >
                             <img
                               src={item.imageUrl}
                               alt="投稿新图"
                               className="w-full h-full object-cover block"
                             />
-                          </div>
+                            <span
+                              aria-hidden="true"
+                              className="absolute right-1.5 bottom-1.5 p-1 bg-black/70 text-[#F4F0E8] opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <ZoomIn className="w-3.5 h-3.5" />
+                            </span>
+                          </button>
                         </div>
                       </div>
                     )}
 
-                    {/* Copy Diff Comparison */}
+                    {/* Copy Diff Comparison with Character-Level Highlighting */}
                     {item.copyPatch && effectiveGamble && (
                       <div className="space-y-3">
-                        {(Object.keys(item.copyPatch) as (keyof GambleCopyPatch)[]).map((field) => (
-                          <div
-                            key={field}
-                            className="bg-[var(--bg-card)] border border-[var(--border-hairline)] p-3 space-y-2 text-xs"
-                          >
-                            <p className="text-[var(--brass)] font-medium">
-                              {COPY_FIELD_LABELS[field]}
-                            </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              <div>
-                                <p className="text-[10.5px] text-[var(--text-muted)] mb-1">修改前</p>
-                                <p className="whitespace-pre-wrap text-[var(--text-muted)] leading-relaxed">
-                                  {renderFieldValue(
-                                    effectiveGamble[field] as string | string[] | undefined
-                                  )}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-[10.5px] text-emerald-400 mb-1">修改后</p>
-                                <p className="whitespace-pre-wrap text-[var(--text-primary)] leading-relaxed">
-                                  {renderFieldValue(
-                                    item.copyPatch?.[field] as string | string[] | undefined
-                                  )}
-                                </p>
+                        {(Object.keys(item.copyPatch) as (keyof GambleCopyPatch)[]).map((field) => {
+                          const beforeStr = renderFieldValue(
+                            effectiveGamble[field] as string | string[] | undefined
+                          );
+                          const afterStr = renderFieldValue(
+                            item.copyPatch?.[field] as string | string[] | undefined
+                          );
+                          return (
+                            <div
+                              key={field}
+                              className="bg-[var(--bg-card)] border border-[var(--border-hairline)] p-3.5 space-y-2.5 text-xs"
+                            >
+                              <p className="text-[var(--brass)] font-medium">
+                                {COPY_FIELD_LABELS[field]}
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <p className="text-[10.5px] text-[var(--text-muted)] mb-1">
+                                    修改前
+                                  </p>
+                                  <HighlightedDiffView
+                                    beforeText={beforeStr}
+                                    afterText={afterStr}
+                                    side="before"
+                                  />
+                                </div>
+                                <div className="md:border-l md:border-[var(--border-hairline)] md:pl-4">
+                                  <p className="text-[10.5px] text-emerald-400 mb-1">修改后</p>
+                                  <HighlightedDiffView
+                                    beforeText={beforeStr}
+                                    afterText={afterStr}
+                                    side="after"
+                                  />
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
 
@@ -565,15 +709,24 @@ export function ModerationDrawer({
                       data-testid={`admin-cover-card-${series.id}`}
                       className="flex gap-3.5 p-3.5 bg-[var(--bg-inset)]/55 border border-[var(--border-subtle)]"
                     >
-                      <div className="w-[74px] aspect-[128/182] rounded-[4px] overflow-hidden bg-[var(--bg-img)] ring-1 ring-[var(--img-ring)] shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => openImagePreview(effectiveCover, `《${series.title}》封面`)}
+                        aria-label={`放大查看《${series.title}》封面`}
+                        className="group relative w-[74px] aspect-[128/182] rounded-[4px] overflow-hidden bg-[var(--bg-img)] ring-1 ring-[var(--img-ring)] hover:ring-[var(--brass)] shrink-0 cursor-zoom-in transition-all"
+                      >
                         <img
                           src={getThumbImageUrl(effectiveCover)}
                           alt={`《${series.title}》封面`}
-                          loading="lazy"
-                          decoding="async"
                           className="w-full h-full object-cover block"
                         />
-                      </div>
+                        <span
+                          aria-hidden="true"
+                          className="absolute right-1 bottom-1 p-0.5 bg-black/70 text-[#F4F0E8] opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <ZoomIn className="w-3 h-3" />
+                        </span>
+                      </button>
                       <div className="min-w-0 flex-1 flex flex-col justify-between">
                         <div>
                           <p className="font-mincho text-sm text-[var(--text-primary)] truncate">
@@ -643,11 +796,18 @@ export function ModerationDrawer({
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           {entry.imageUrl && (
-                            <img
-                              src={entry.imageUrl}
-                              alt=""
-                              className="w-7 h-10 object-cover shrink-0 ring-1 ring-[var(--img-ring)]"
-                            />
+                            <button
+                              type="button"
+                              onClick={() => openImagePreview(entry.imageUrl!, entry.label)}
+                              aria-label={`放大查看 ${entry.label}`}
+                              className="w-7 h-10 overflow-hidden shrink-0 ring-1 ring-[var(--img-ring)] hover:ring-[var(--brass)] cursor-zoom-in"
+                            >
+                              <img
+                                src={entry.imageUrl}
+                                alt=""
+                                className="w-full h-full object-cover block"
+                              />
+                            </button>
                           )}
                           <span className="text-[var(--text-primary)] truncate">
                             {entry.label}
@@ -709,6 +869,61 @@ export function ModerationDrawer({
           )}
         </div>
       </div>
+
+      {/* Full-Resolution Image Inspector Overlay inside Admin Drawer */}
+      {previewImage && (
+        <div
+          data-testid="moderation-image-inspector"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`原图预览：${previewImage.label}`}
+          className="modal-backdrop-enter fixed inset-0 z-[60] flex flex-col items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setPreviewImage(null);
+              setPreviewDimensions(null);
+            }
+          }}
+        >
+          <div className="w-full max-w-4xl flex items-center justify-between gap-4 mb-3 text-xs text-[#E8E4DC]">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="font-medium truncate">{previewImage.label}</span>
+              {previewDimensions && (
+                <span className="tabular-nums text-[#C8A66E] shrink-0">
+                  {previewDimensions.width} × {previewDimensions.height} px
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              data-testid="close-image-inspector-btn"
+              onClick={() => {
+                setPreviewImage(null);
+                setPreviewDimensions(null);
+              }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 border border-white/25 hover:border-white text-[#F4F0E8] cursor-pointer shrink-0"
+            >
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>关闭预览</span>
+            </button>
+          </div>
+          <div className="max-h-[82vh] max-w-[92vw] overflow-auto border border-white/15 bg-[#09090C] p-1">
+            <img
+              src={previewImage.src}
+              alt={previewImage.label}
+              referrerPolicy="no-referrer"
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                setPreviewDimensions({
+                  width: img.naturalWidth,
+                  height: img.naturalHeight,
+                });
+              }}
+              className="max-h-[80vh] w-auto object-contain block"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

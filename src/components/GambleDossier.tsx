@@ -40,10 +40,12 @@ interface GambleDossierProps {
   isHidden: boolean;
   onToggleReveal: () => void;
   isEditing?: boolean;
+  canModerate?: boolean;
   editDraft?: DetailEditDraft | null;
   onChangeDraft?: (patch: Partial<DetailEditDraft>) => void;
   onCancelEdit?: () => void;
   onSubmitEdit?: () => void;
+  onDirectApplyEdit?: () => void;
   submittingEdit?: boolean;
   editError?: string | null;
   onPrev: () => void;
@@ -53,7 +55,7 @@ interface GambleDossierProps {
 }
 
 const inputBaseClass =
-  'w-full bg-[var(--bg-input)] border border-[var(--border-strong)]/70 focus:border-[var(--brass)] focus:outline-none px-3.5 py-2.5 text-[16px] sm:text-[14.5px] leading-[1.75] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors';
+  'w-full bg-[var(--bg-input)] border border-[var(--border-strong)]/70 focus:border-[var(--brass)] focus:outline-none px-3.5 py-2.5 text-[14.5px] leading-[1.75] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors';
 
 export function GambleDossier({
   gamble,
@@ -61,10 +63,12 @@ export function GambleDossier({
   isHidden,
   onToggleReveal,
   isEditing = false,
+  canModerate = false,
   editDraft = null,
   onChangeDraft,
   onCancelEdit,
   onSubmitEdit,
+  onDirectApplyEdit,
   submittingEdit = false,
   editError = null,
   onPrev,
@@ -97,8 +101,8 @@ export function GambleDossier({
     >
       <div>
         {/* Archival Provenance Metadata Row */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[var(--border-subtle)] text-[12px] sm:text-[12.5px] text-[var(--text-muted)]">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-[var(--border-subtle)] text-[12.5px] text-[var(--text-muted)]">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="font-semibold text-[var(--text-primary)]">
               《{series.title}》
             </span>
@@ -138,14 +142,14 @@ export function GambleDossier({
           </div>
         )}
 
-        {/* Sculpted Matchup & Referee Ledger (人名保持黑体) */}
-        <dl className="mt-4 sm:mt-6 collector-card bg-[var(--bg-card)] border border-[var(--border-subtle)] p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4 sm:gap-y-5">
+        {/* Hairline-Ruled Museum Accession Ledger (No Box Wrapper) */}
+        <dl className="py-5 sm:py-6 border-b border-[var(--border-subtle)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-5">
             <div>
               <dt className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
                 对决双方
               </dt>
-              <dd className="mt-2 sm:mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 font-sans text-[14.5px] sm:text-[15.5px] font-semibold text-[var(--text-primary)]">
+              <dd className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 font-sans text-[15.5px] font-semibold text-[var(--text-primary)]">
                 <span className="inline-flex items-center gap-1.5">
                   <span>{firstSide.name}</span>
                   {firstSide.outcome === 'win' && (
@@ -184,13 +188,13 @@ export function GambleDossier({
               <dt className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
                 {gamble.refereeRole} / 裁判方
               </dt>
-              <dd className="mt-2 sm:mt-2.5 font-sans text-[14.5px] sm:text-[15.5px] font-semibold text-[var(--text-primary)] leading-snug">
+              <dd className="mt-2 font-sans text-[15.5px] font-semibold text-[var(--text-primary)] leading-snug">
                 {gamble.refereeName}
               </dd>
             </div>
           </div>
 
-          <div className="mt-4 pt-3.5 sm:mt-5 sm:pt-4 border-t border-[var(--border-hairline)]">
+          <div className="mt-5 pt-4 border-t border-[var(--border-hairline)]">
             <dt className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
               胜负判定
             </dt>
@@ -206,174 +210,169 @@ export function GambleDossier({
                 />
               </dd>
             ) : (
-              <dd className="mt-1.5 font-sans text-[14px] sm:text-[15px] text-[var(--text-secondary)] leading-[1.82] sm:leading-[1.85]">
+              <dd className="mt-1.5 font-sans text-[15px] text-[var(--text-secondary)] leading-[1.82]">
                 {gamble.winCondition}
               </dd>
             )}
           </div>
         </dl>
 
-        {/* Background Knowledge Guide (Zero Ending Spoilers, Collapsed by Default) */}
+        {/* Background Knowledge Guide (Zero Ending Spoilers, Hairline-Ruled Editorial Disclosure) */}
         {!editingActive && background && world && (
           <section
             aria-labelledby="background-heading"
             data-testid="gamble-background-section"
-            className="mt-8 sm:mt-10"
+            className="border-b border-[var(--border-subtle)]"
           >
-            <div className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)] collector-card overflow-hidden">
-              <button
-                type="button"
-                data-testid="toggle-background-btn"
-                aria-expanded={showBackground}
-                aria-controls="background-guide-body"
-                onClick={() => setShowBackground((prev) => !prev)}
-                className="w-full flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5 sm:py-4 text-left hover:bg-[var(--bg-inset)]/45 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--text-primary)]"
-              >
-                <div className="flex flex-wrap items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              data-testid="toggle-background-btn"
+              aria-expanded={showBackground}
+              aria-controls="background-guide-body"
+              onClick={() => setShowBackground((prev) => !prev)}
+              className="group w-full flex items-center justify-between gap-3 py-4 text-left transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
+            >
+              <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 min-w-0">
+                <span className="inline-flex items-center gap-2">
                   <BookOpen
-                    className="w-4 h-4 text-[var(--brass)] shrink-0"
+                    className="w-3.5 h-3.5 text-[var(--brass)] shrink-0"
                     aria-hidden="true"
                   />
                   <h3
                     id="background-heading"
-                    className="font-mincho font-normal text-[18px] sm:text-[20px] text-[var(--text-primary)] tracking-[0.02em]"
+                    className="font-mincho font-normal text-[17px] sm:text-[18.5px] text-[var(--text-primary)] group-hover:text-[var(--brass)] transition-colors tracking-[0.02em]"
                   >
                     背景知识
                   </h3>
-                  <span className="text-[11.5px] text-[var(--text-muted)]">
-                    前情提要、关键人物与作品设定（无剧透）
-                  </span>
-                </div>
-                <span className="inline-flex items-center gap-1 text-xs text-[var(--brass)] shrink-0">
-                  <span>{showBackground ? '收起' : '展开'}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      showBackground ? 'rotate-180' : ''
-                    }`}
-                    aria-hidden="true"
-                  />
                 </span>
-              </button>
+                <span className="text-[12px] text-[var(--text-muted)]">
+                  前情提要、关键人物与作品设定（无剧透）
+                </span>
+              </div>
+              <span className="inline-flex items-center gap-1 text-xs text-[var(--brass)] shrink-0">
+                <span>{showBackground ? '收起' : '展开'}</span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    showBackground ? 'rotate-180' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              </span>
+            </button>
 
-              {showBackground && (
-                <div
-                  id="background-guide-body"
-                  data-testid="background-guide-body"
-                  className="border-t border-[var(--border-hairline)]"
-                >
-                  <div className="px-4 py-4 sm:px-6 sm:py-5 space-y-5">
-                    {/* 本局前情 */}
-                    <div>
-                      <h4 className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
-                        本局前情
-                      </h4>
-                      <p className="mt-1.5 font-sans text-[14.5px] sm:text-[15px] text-[var(--text-secondary)] leading-[1.82] sm:leading-[1.86]">
-                        {background.setup}
-                      </p>
-                    </div>
-
-                    {/* 关键人物 */}
-                    <div className="pt-4 border-t border-[var(--border-hairline)]">
-                      <h4 className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
-                        关键人物
-                      </h4>
-                      <dl className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {background.characters.map((character) => (
-                          <div
-                            key={character.name}
-                            className="px-3.5 py-2.5 rounded-lg bg-[var(--bg-inset)]/55 border border-[var(--border-hairline)]"
-                          >
-                            <dt className="font-sans text-[13.5px] font-semibold text-[var(--text-primary)]">
-                              {character.name}
-                            </dt>
-                            <dd className="mt-1 font-sans text-[13px] text-[var(--text-secondary)] leading-[1.65]">
-                              {character.role}
-                            </dd>
-                          </div>
-                        ))}
-                      </dl>
-                    </div>
-                  </div>
-
-                  {/* 作品世界观与核心术语（二级折叠） */}
-                  <div className="border-t border-[var(--border-hairline)] bg-[var(--bg-inset)]/35">
-                    <button
-                      type="button"
-                      data-testid="toggle-world-guide-btn"
-                      aria-expanded={showWorldGuide}
-                      aria-controls="world-guide-panel"
-                      onClick={() => setShowWorldGuide((prev) => !prev)}
-                      className="w-full flex items-center justify-between gap-3 px-4 sm:px-6 py-3 min-h-[42px] text-left text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-inset)]/60 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--text-primary)]"
-                    >
-                      <span className="leading-snug">
-                        {showWorldGuide
-                          ? `收起《${series.title}》世界观与核心术语`
-                          : `未看过《${series.title}》？展开世界观与核心术语（${world.keyTerms.length} 项）`}
-                      </span>
-                      <ChevronDown
-                        className={`w-4 h-4 text-[var(--brass)] shrink-0 transition-transform duration-200 ${
-                          showWorldGuide ? 'rotate-180' : ''
-                        }`}
-                        aria-hidden="true"
-                      />
-                    </button>
-
-                    {showWorldGuide && (
-                      <div
-                        id="world-guide-panel"
-                        data-testid="world-guide-panel"
-                        className="px-4 pb-4 pt-3 sm:px-6 sm:pb-5 sm:pt-3.5 border-t border-[var(--border-hairline)] space-y-4"
-                      >
-                        <div>
-                          <h4 className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
-                            作品世界观
-                          </h4>
-                          <p className="mt-1.5 font-sans text-[13.5px] sm:text-[14px] text-[var(--text-secondary)] leading-[1.78]">
-                            {world.premise}
-                          </p>
-                        </div>
-
-                        <div className="pt-3 border-t border-[var(--border-hairline)]">
-                          <h4 className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
-                            核心术语速查
-                          </h4>
-                          <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-2.5">
-                            {world.keyTerms.map((item) => (
-                              <div key={item.term} className="text-[13px] leading-[1.68]">
-                                <dt className="inline font-semibold text-[var(--text-primary)]">
-                                  {item.term}：
-                                </dt>
-                                <dd className="inline text-[var(--text-secondary)]">
-                                  {item.desc}
-                                </dd>
-                              </div>
-                            ))}
-                          </dl>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+            {showBackground && (
+              <div
+                id="background-guide-body"
+                data-testid="background-guide-body"
+                className="disclosure-reveal pb-6 pt-1 space-y-5"
+              >
+                <div>
+                  <h4 className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
+                    本局前情
+                  </h4>
+                  <p className="mt-1.5 font-sans text-[14.5px] sm:text-[15px] text-[var(--text-secondary)] leading-[1.85]">
+                    {background.setup}
+                  </p>
                 </div>
-              )}
-            </div>
+
+                <div className="pt-4 border-t border-[var(--border-hairline)]">
+                  <h4 className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
+                    关键人物
+                  </h4>
+                  <dl className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3.5">
+                    {background.characters.map((character) => (
+                      <div
+                        key={character.name}
+                        className="pt-2.5 border-t border-[var(--border-hairline)]"
+                      >
+                        <dt className="font-sans text-[13.5px] font-semibold text-[var(--text-primary)]">
+                          {character.name}
+                        </dt>
+                        <dd className="mt-1 font-sans text-[13px] text-[var(--text-secondary)] leading-[1.68]">
+                          {character.role}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+
+                {/* 作品世界观与核心术语（二级折叠，细线分隔） */}
+                <div className="pt-3 border-t border-[var(--border-hairline)]">
+                  <button
+                    type="button"
+                    data-testid="toggle-world-guide-btn"
+                    aria-expanded={showWorldGuide}
+                    aria-controls="world-guide-panel"
+                    onClick={() => setShowWorldGuide((prev) => !prev)}
+                    className="w-full flex items-center justify-between gap-3 py-1.5 text-left text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
+                  >
+                    <span className="leading-snug">
+                      {showWorldGuide
+                        ? `收起《${series.title}》世界观与核心术语`
+                        : `未看过《${series.title}》？展开世界观与核心术语（${world.keyTerms.length} 项）`}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-[var(--brass)] shrink-0 transition-transform duration-200 ${
+                        showWorldGuide ? 'rotate-180' : ''
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  {showWorldGuide && (
+                    <div
+                      id="world-guide-panel"
+                      data-testid="world-guide-panel"
+                      className="disclosure-reveal pt-3.5 space-y-4"
+                    >
+                      <div>
+                        <h4 className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
+                          作品世界观
+                        </h4>
+                        <p className="mt-1.5 font-sans text-[13.5px] sm:text-[14px] text-[var(--text-secondary)] leading-[1.8]">
+                          {world.premise}
+                        </p>
+                      </div>
+                      <div className="pt-3 border-t border-[var(--border-hairline)]">
+                        <h4 className="text-[11px] tracking-[0.12em] text-[var(--brass)]">
+                          核心术语速查
+                        </h4>
+                        <dl className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+                          {world.keyTerms.map((item) => (
+                            <div key={item.term} className="text-[13px] leading-[1.7]">
+                              <dt className="inline font-semibold text-[var(--text-primary)]">
+                                {item.term}：
+                              </dt>
+                              <dd className="inline text-[var(--text-secondary)]">
+                                {item.desc}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
         {/* Objective Game Rules Section */}
-        <section aria-labelledby="rules-heading" className="mt-8 sm:mt-10">
+        <section aria-labelledby="rules-heading" className="mt-9 sm:mt-10">
           <div className="flex items-baseline gap-3">
             <span className="tabular-nums text-[11px] tracking-[0.12em] text-[var(--brass)]">
               01
             </span>
             <h3
               id="rules-heading"
-              className="font-mincho font-normal text-[20px] sm:text-[23px] text-[var(--text-primary)] tracking-[0.02em]"
+              className="font-mincho font-normal text-[21px] sm:text-[23px] text-[var(--text-primary)] tracking-[0.02em]"
             >
               游戏规则
             </h3>
           </div>
 
-          {/* 一句话规则：黑体 */}
+          {/* 一句话规则：开阔的编排导语（去框化，自然建立视觉主次） */}
           {editingActive && editDraft && onChangeDraft ? (
             <div className="mt-4">
               <label
@@ -394,20 +393,21 @@ export function GambleDossier({
           ) : (
             <p
               data-testid="dossier-one-line-rule"
-              className="mt-3.5 sm:mt-4 px-4 py-3.5 sm:px-5 sm:py-4 bg-[var(--bg-card)] border border-[var(--border-subtle)] font-sans text-[14.5px] sm:text-[15.5px] font-medium text-[var(--text-primary)] leading-[1.82] sm:leading-[1.88] collector-card"
+              className="mt-3.5 font-sans text-[15.5px] sm:text-[16.5px] font-medium text-[var(--text-primary)] leading-[1.8]"
             >
               {gamble.oneLineRule}
             </p>
           )}
 
+          {/* 交互规则图解：单层独立画布，彻底杜绝边框套边框 */}
           {!editingActive && hasDiagram && (
-            <div className="mt-5 sm:mt-6">
+            <div className="mt-6">
               <GambleFlowDiagramCard key={gamble.id} gambleId={gamble.id} />
             </div>
           )}
 
-          {/* 文字版流程（默认折叠） */}
-          <div className="mt-5 sm:mt-6">
+          {/* 文字版流程：细线折叠栏，平铺在页面上而非再套盒子 */}
+          <div className="mt-6">
             {editingActive && editDraft && onChangeDraft ? (
               <div>
                 <h4 className="text-xs font-medium tracking-[0.12em] text-[var(--brass)]">
@@ -423,16 +423,16 @@ export function GambleDossier({
                 />
               </div>
             ) : (
-              <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] overflow-hidden">
+              <div className="border-y border-[var(--border-subtle)]">
                 <button
                   type="button"
                   data-testid="toggle-text-rules-btn"
                   aria-expanded={showTextRules}
                   aria-controls="text-rules-panel"
                   onClick={() => setShowTextRules((prev) => !prev)}
-                  className="w-full flex items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-3.5 text-left hover:bg-[var(--bg-inset)]/45 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--text-primary)]"
+                  className="group w-full flex items-center justify-between gap-3 py-3.5 text-left transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
                 >
-                  <span className="text-xs sm:text-[13px] font-medium text-[var(--text-primary)]">
+                  <span className="text-[13px] font-medium text-[var(--text-primary)] group-hover:text-[var(--brass)] transition-colors">
                     文字版流程（共 {gamble.basicRules.length} 步）
                   </span>
                   <span className="inline-flex items-center gap-1 text-xs text-[var(--brass)] shrink-0">
@@ -445,12 +445,11 @@ export function GambleDossier({
                     />
                   </span>
                 </button>
-
                 {showTextRules && (
                   <ol
                     id="text-rules-panel"
                     data-testid="text-rules-panel"
-                    className="px-4 py-3.5 sm:px-5 sm:py-4 border-t border-[var(--border-hairline)] space-y-3 sm:space-y-3.5 font-sans"
+                    className="disclosure-reveal pb-4 pt-1 space-y-3 sm:space-y-3.5 font-sans"
                   >
                     {gamble.basicRules.map((rule, index) => (
                       <li
@@ -469,9 +468,9 @@ export function GambleDossier({
             )}
           </div>
 
-          {/* 额外信息：作品与背景档案卡 */}
-          <div className="mt-6 sm:mt-8 p-4 sm:p-5 bg-[var(--bg-inset)]/55 border border-[var(--border-hairline)]">
-            <h4 className="text-xs font-medium tracking-[0.12em] text-[var(--text-muted)]">
+          {/* 额外信息：安静的档案馆附注（无额外色块边框） */}
+          <div className="mt-7">
+            <h4 className="text-[11px] font-medium tracking-[0.12em] text-[var(--text-muted)]">
               额外信息{editingActive ? '（每行一条）' : ''}
             </h4>
             {editingActive && editDraft && onChangeDraft ? (
@@ -484,7 +483,7 @@ export function GambleDossier({
                 className={`${inputBaseClass} mt-3`}
               />
             ) : (
-              <ul className="mt-3 sm:mt-3.5 space-y-2.5 font-sans text-[14px] sm:text-[14.5px] leading-[1.82] sm:leading-[1.85] text-[var(--text-secondary)]">
+              <ul className="mt-3 space-y-2.5 font-sans text-[14.5px] leading-[1.85] text-[var(--text-secondary)]">
                 {gamble.extraInfo.map((info) => (
                   <li key={info} className="grid grid-cols-[1rem_1fr] gap-2 items-baseline">
                     <span className="text-[var(--brass)] opacity-80 select-none" aria-hidden="true">
@@ -501,7 +500,7 @@ export function GambleDossier({
         {/* Rule Analysis Section */}
         <section
           aria-labelledby="analysis-heading"
-          className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-[var(--border-subtle)]"
+          className="mt-11 pt-8 border-t border-[var(--border-subtle)]"
         >
           <div className="flex items-baseline gap-3">
             <span className="tabular-nums text-[11px] tracking-[0.12em] text-[var(--brass)]">
@@ -509,7 +508,7 @@ export function GambleDossier({
             </span>
             <h3
               id="analysis-heading"
-              className="font-mincho font-normal text-[20px] sm:text-[23px] text-[var(--text-primary)] tracking-[0.02em]"
+              className="font-mincho font-normal text-[23px] text-[var(--text-primary)] tracking-[0.02em]"
             >
               规则解析
             </h3>
@@ -527,7 +526,7 @@ export function GambleDossier({
               />
             </div>
           ) : (
-            <ul className="mt-4 sm:mt-5 space-y-3.5 sm:space-y-4 font-sans text-[14.5px] sm:text-[15px] text-[var(--text-secondary)] leading-[1.84] sm:leading-[1.88]">
+            <ul className="mt-5 space-y-4 font-sans text-[15px] text-[var(--text-secondary)] leading-[1.88]">
               {gamble.ruleAnalysis.map((point) => (
                 <li key={point} className="grid grid-cols-[1.25rem_1fr] gap-2 items-baseline">
                   <span className="text-[var(--brass)] select-none" aria-hidden="true">
@@ -543,16 +542,16 @@ export function GambleDossier({
         {/* Spoils & Ending Section */}
         <section
           aria-labelledby="spoils-heading"
-          className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-[var(--border-subtle)]"
+          className="mt-11 pt-8 border-t border-[var(--border-subtle)]"
         >
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-baseline justify-between gap-4">
             <div className="flex items-baseline gap-3">
               <span className="tabular-nums text-[11px] tracking-[0.12em] text-[var(--brass)]">
                 03
               </span>
               <h3
                 id="spoils-heading"
-                className="font-mincho font-normal text-[20px] sm:text-[23px] text-[var(--text-primary)] tracking-[0.02em]"
+                className="font-mincho font-normal text-[23px] text-[var(--text-primary)] tracking-[0.02em]"
               >
                 战利品与结局
               </h3>
@@ -562,7 +561,7 @@ export function GambleDossier({
               <button
                 type="button"
                 onClick={onToggleReveal}
-                className="inline-flex items-center gap-1.5 min-h-[36px] px-2.5 py-1.5 -mr-2.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
+                className="inline-flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
               >
                 {isHidden ? (
                   <>
@@ -615,26 +614,26 @@ export function GambleDossier({
               </div>
             </div>
           ) : isHidden ? (
-            <div className="mt-4 sm:mt-5 py-9 sm:py-11 px-5 sm:px-6 bg-[var(--spoiler-bg)] border border-[var(--border-subtle)] text-[#F2F2F0] text-center">
-              <p className="text-[14px] sm:text-[14.5px] text-[#C8C8CE]">
+            <div className="mt-5 py-11 px-6 rounded-md bg-[var(--spoiler-bg)] border border-[var(--border-subtle)] text-[#F2F2F0] text-center">
+              <p className="text-[14.5px] text-[#C8C8CE]">
                 防剧透遮罩已开启，本局战利品与结局暂不显示。
               </p>
               <button
                 type="button"
                 onClick={onToggleReveal}
-                className="mt-5 inline-flex items-center gap-1.5 min-h-[40px] px-4 py-2 bg-[#F4F0E8] text-[#09090C] hover:opacity-90 text-xs font-semibold transition-opacity cursor-pointer"
+                className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 bg-[#F4F0E8] text-[#09090C] hover:opacity-90 text-xs font-semibold transition-opacity cursor-pointer"
               >
                 <Eye className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>显示战利品与结局</span>
               </button>
             </div>
           ) : (
-            <div className="mt-4 sm:mt-5 space-y-5 sm:space-y-6">
-              <ul className="space-y-2.5 font-sans text-[14.5px] sm:text-[15px] text-[var(--text-secondary)]">
+            <div className="mt-5 space-y-6">
+              <ul className="space-y-2.5 font-sans text-[15px] text-[var(--text-secondary)]">
                 {gamble.spoilsBreakdown.map((item) => (
                   <li
                     key={item}
-                    className="grid grid-cols-[1rem_1fr] gap-2 items-baseline leading-[1.82] sm:leading-[1.85]"
+                    className="grid grid-cols-[1rem_1fr] gap-2 items-baseline leading-[1.85]"
                   >
                     <span
                       className="text-[var(--accent)] text-[9px] select-none"
@@ -647,11 +646,11 @@ export function GambleDossier({
                 ))}
               </ul>
 
-              <div className="px-4 py-3.5 sm:p-5 bg-[var(--bg-card)] border border-[var(--border-subtle)] collector-card">
-                <h4 className="font-mincho font-normal text-[16.5px] sm:text-[17px] text-[var(--text-primary)]">
+              <div className="pt-5 border-t border-[var(--border-hairline)]">
+                <h4 className="text-[11px] font-medium tracking-[0.12em] text-[var(--brass)]">
                   结局
                 </h4>
-                <p className="mt-2 sm:mt-2.5 font-sans text-[14.5px] sm:text-[15px] leading-[1.84] sm:leading-[1.88] text-[var(--text-secondary)]">
+                <p className="mt-2 font-sans text-[15px] leading-[1.9] text-[var(--text-primary)]/90">
                   {gamble.ending}
                 </p>
               </div>
@@ -667,10 +666,12 @@ export function GambleDossier({
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-xs font-medium tracking-[0.12em] text-[var(--brass)]">
-                提交纠错说明（进入本机后台待审）
+                {canModerate ? '保存或提交修订说明' : '提交纠错说明（进入本机后台待审）'}
               </h4>
               <span className="text-[11.5px] text-[var(--text-muted)]">
-                审核通过后才会更新页面
+                {canModerate
+                  ? '本机可直接保存生效，也可推入待审队列'
+                  : '审核通过后才会更新页面'}
               </span>
             </div>
 
@@ -686,7 +687,7 @@ export function GambleDossier({
                   id="inline-edit-author"
                   type="text"
                   maxLength={32}
-                  placeholder="匿名读者"
+                  placeholder={canModerate ? '本机管理员' : '匿名读者'}
                   value={editDraft.submittedBy}
                   onChange={(e) => onChangeDraft({ submittedBy: e.target.value })}
                   className={inputBaseClass}
@@ -735,10 +736,32 @@ export function GambleDossier({
                   data-testid="detail-edit-submit-bottom-btn"
                   onClick={onSubmitEdit}
                   disabled={submittingEdit}
+                  className={
+                    canModerate && onDirectApplyEdit
+                      ? 'inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium border border-[var(--border-strong)] text-[var(--text-primary)] hover:border-[var(--brass)] hover:text-[var(--brass)] transition-colors cursor-pointer disabled:opacity-50'
+                      : 'inline-flex items-center gap-1.5 px-5 py-2 text-xs font-medium bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] transition-colors cursor-pointer disabled:opacity-50'
+                  }
+                >
+                  <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>
+                    {submittingEdit
+                      ? '处理中…'
+                      : canModerate && onDirectApplyEdit
+                        ? '提交至待审队列'
+                        : '提交至后台待审'}
+                  </span>
+                </button>
+              )}
+              {canModerate && onDirectApplyEdit && (
+                <button
+                  type="button"
+                  data-testid="detail-edit-direct-bottom-btn"
+                  onClick={onDirectApplyEdit}
+                  disabled={submittingEdit}
                   className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-medium bg-[var(--accent)] text-[var(--accent-fg)] hover:bg-[var(--accent-hover)] transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Check className="w-3.5 h-3.5" aria-hidden="true" />
-                  <span>{submittingEdit ? '提交中…' : '提交至后台待审'}</span>
+                  <span>{submittingEdit ? '保存中…' : '本机直接生效'}</span>
                 </button>
               )}
             </div>
@@ -749,12 +772,12 @@ export function GambleDossier({
         {!editingActive && (
           <section
             aria-label="原著经典台词"
-            className="mt-9 sm:mt-11 py-6 sm:py-8 border-y border-[var(--border-strong)]"
+            className="mt-12 py-8 border-y border-[var(--border-subtle)]"
           >
-            <div className="flex flex-col gap-5 sm:gap-7">
+            <div className="flex flex-col gap-7">
               {gamble.originalQuotes.map((quote) => (
                 <blockquote key={quote.jp}>
-                  <p className="font-mincho text-[18px] sm:text-[21px] text-[var(--text-primary)] leading-[1.72] sm:leading-[1.75]">
+                  <p className="font-mincho text-[19.5px] sm:text-[21px] text-[var(--text-primary)] leading-[1.75]">
                     {quote.cn}
                   </p>
                   {showOriginalQuotes && (
@@ -767,7 +790,7 @@ export function GambleDossier({
                       {quote.jp}
                     </p>
                   )}
-                  <footer className="mt-2 text-[13px] text-[var(--text-muted)] font-sans">
+                  <footer className="mt-2.5 text-[13px] text-[var(--text-muted)] font-sans">
                     <span className="mr-1.5 text-[var(--brass)]">—</span>
                     <span className="font-medium text-[var(--text-primary)]">
                       {quote.speaker}
@@ -777,7 +800,7 @@ export function GambleDossier({
               ))}
             </div>
 
-            <div className="mt-5 flex justify-end">
+            <div className="mt-6 flex justify-end">
               <button
                 type="button"
                 data-testid="toggle-quote-original"
@@ -803,6 +826,7 @@ export function GambleDossier({
             <button
               type="button"
               onClick={onPrev}
+              title="上一局（键盘左方向键 ←）"
               className="col-start-1 row-start-1 inline-flex items-center justify-center gap-1.5 min-h-[44px] sm:min-h-[38px] px-4 py-2 text-[13px] sm:text-xs font-medium text-[var(--text-primary)] bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
             >
               <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />
@@ -811,6 +835,7 @@ export function GambleDossier({
             <button
               type="button"
               onClick={onNext}
+              title="下一局（键盘右方向键 →）"
               className="col-start-3 row-start-1 inline-flex items-center justify-center gap-1.5 min-h-[44px] sm:min-h-[38px] px-4 py-2 text-[13px] sm:text-xs font-medium bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] hover:opacity-85 transition-opacity whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
             >
               <span>下一局</span>

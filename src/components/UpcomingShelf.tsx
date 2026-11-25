@@ -39,7 +39,7 @@ export function UpcomingShelf({
           </h2>
         </div>
         <p className="text-[13.5px] text-[var(--text-muted)] max-w-xl leading-[1.82]">
-          当前优先整理了《噬谎者》《欺诈游戏》《赌博默示录》共 40 场核心对局；以下斗智名作已列入排期，可投票决定下一部优先收录的作品。
+          以下斗智名作已列入后续收录排期，可投票决定下一部优先整理的漫画作品。
         </p>
       </div>
 
@@ -110,7 +110,7 @@ export function UpcomingShelf({
 
                 <div className="mt-4 pt-3.5 border-t border-[var(--border-hairline)]">
                   <p className="text-[11px] tracking-[0.08em] text-[var(--brass)]">
-                    拟收录赌局
+                    拟收录游戏
                   </p>
                   <ul className="mt-2 space-y-1.5 text-[12.5px] text-[var(--text-secondary)]">
                     {item.plannedGambles.map((gambleTitle) => (

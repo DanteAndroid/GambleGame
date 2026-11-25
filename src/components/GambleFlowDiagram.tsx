@@ -236,7 +236,7 @@ export function GambleFlowDiagramCard({ gambleId }: { gambleId: string }) {
       aria-label="规则交互图解"
       data-testid="gamble-flow-diagram"
       data-gamble-id={gambleId}
-      className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 sm:p-5 collector-card"
+      className="diagram-stage"
     >
       {DirectComp ? (
         <DirectComp />

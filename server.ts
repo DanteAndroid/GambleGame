@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -5,11 +6,20 @@ import { fileURLToPath } from 'node:url';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { GAMBLE_RECORDS, MANGA_SERIES, UPCOMING_MANGA_SHELF } from './src/data/gambles';
 import {
+  extractBearerToken,
+  hashPasscode,
+  validateNewPasscode,
+  verifyEnvPasscode,
+  verifyPasscodeHash,
+  type StoredAdminCredential,
+} from './src/utils/adminAuth';
+import {
   detectImageFormat,
   EMPTY_OVERRIDES,
   isSafeLocalImagePath,
   isStrictLocalhostRequest,
   sanitizeCopyPatch,
+  type AdminAuthMode,
   type ApprovedOverrides,
   type ContentSubmission,
   type SubmissionType,
@@ -25,11 +35,18 @@ const STORE_PATH = path.resolve(DATA_DIR, 'store.json');
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 const MAX_PENDING_SUBMISSIONS = 120;
+const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+const LOGIN_RATE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const LOGIN_MAX_FAILURES = 8;
 
 interface PersistentStore {
   overrides: ApprovedOverrides;
   submissions: ContentSubmission[];
+  adminCredential?: StoredAdminCredential;
 }
+
+const activeAdminSessions = new Map<string, number>();
+const loginFailureMap = new Map<string, { count: number; resetAt: number }>();
 
 const VALID_SERIES_TARGETS = new Map<string, string>();
 for (const s of MANGA_SERIES) {
@@ -85,7 +102,16 @@ function loadStore(): PersistentStore {
           : {},
     };
     const submissions = Array.isArray(parsed.submissions) ? parsed.submissions : [];
-    return { overrides, submissions };
+    const rawCred = parsed.adminCredential;
+    const adminCredential =
+      rawCred &&
+      typeof rawCred === 'object' &&
+      typeof rawCred.salt === 'string' &&
+      typeof rawCred.hash === 'string' &&
+      typeof rawCred.claimedAt === 'string'
+        ? rawCred
+        : undefined;
+    return { overrides, submissions, ...(adminCredential ? { adminCredential } : {}) };
   } catch {
     return { overrides: cloneEmptyOverrides(), submissions: [] };
   }
@@ -96,6 +122,47 @@ function saveStore(store: PersistentStore): void {
   const tmpPath = `${STORE_PATH}.${crypto.randomBytes(6).toString('hex')}.tmp`;
   fs.writeFileSync(tmpPath, JSON.stringify(store, null, 2), 'utf8');
   fs.renameSync(tmpPath, STORE_PATH);
+}
+
+function getConfiguredEnvPasscode(): string {
+  return (process.env.ADMIN_PASSCODE ?? '').trim();
+}
+
+function getAuthMode(): AdminAuthMode {
+  if (getConfiguredEnvPasscode().length > 0) return 'env';
+  if (store.adminCredential) return 'claimed';
+  return 'unclaimed';
+}
+
+function createAdminSessionToken(): string {
+  const now = Date.now();
+  // Prune expired sessions lazily
+  for (const [tok, exp] of activeAdminSessions.entries()) {
+    if (exp <= now) activeAdminSessions.delete(tok);
+  }
+  const token = crypto.randomBytes(32).toString('hex');
+  activeAdminSessions.set(token, now + ADMIN_SESSION_TTL_MS);
+  return token;
+}
+
+function hasValidAdminToken(req: Request): boolean {
+  const token = extractBearerToken(req.headers.authorization);
+  if (!token) return false;
+  const expiresAt = activeAdminSessions.get(token);
+  if (!expiresAt) return false;
+  if (expiresAt <= Date.now()) {
+    activeAdminSessions.delete(token);
+    return false;
+  }
+  return true;
+}
+
+function getClientKey(req: Request): string {
+  const fwd = req.headers['x-forwarded-for'];
+  if (typeof fwd === 'string' && fwd.trim()) {
+    return fwd.split(',')[0].trim();
+  }
+  return req.socket.remoteAddress ?? 'unknown';
 }
 
 function isRequestLocalhost(req: Request): boolean {
@@ -111,9 +178,13 @@ function isRequestLocalhost(req: Request): boolean {
   });
 }
 
-function requireLocalhost(req: Request, res: Response, next: NextFunction): void {
-  if (!isRequestLocalhost(req)) {
-    res.status(403).json({ error: '仅限本机（localhost）访问审核功能' });
+function isAuthorizedModerator(req: Request): boolean {
+  return isRequestLocalhost(req) || hasValidAdminToken(req);
+}
+
+function requireModerator(req: Request, res: Response, next: NextFunction): void {
+  if (!isAuthorizedModerator(req)) {
+    res.status(403).json({ error: '仅限本机或已验证管理员访问管理后台' });
     return;
   }
   next();
@@ -301,18 +372,102 @@ async function createServer(): Promise<void> {
     });
   });
 
-  // Public check: tells UI whether current request is genuine localhost
+  // Public check: tells UI whether current caller is localhost or Bearer-authenticated admin
   app.get('/api/moderation/status', (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
-    const canModerate = isRequestLocalhost(req);
+    const isLocalhost = isRequestLocalhost(req);
+    const canModerate = isLocalhost || hasValidAdminToken(req);
     const pendingCount = canModerate
       ? store.submissions.filter((s) => s.status === 'pending').length
       : 0;
-    res.json({ canModerate, pendingCount });
+    res.json({
+      canModerate,
+      isLocalhost,
+      authMode: getAuthMode(),
+      pendingCount,
+    });
   });
 
-  // Localhost-only: List all submissions & current overrides
-  app.get('/api/moderation/submissions', requireLocalhost, (_req, res) => {
+  // One-time bootstrap route: claim admin passcode when ADMIN_PASSCODE env is unset and no hash exists yet
+  app.post('/api/moderation/auth/claim', express.json({ limit: '16kb' }), (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    if (getAuthMode() !== 'unclaimed') {
+      res.status(409).json({ error: '管理员密码已配置，请直接使用已有密码登录' });
+      return;
+    }
+
+    const validated = validateNewPasscode((req.body ?? {}).passcode);
+    if (!validated.ok) {
+      res.status(400).json({ error: validated.error });
+      return;
+    }
+
+    store.adminCredential = hashPasscode(validated.value);
+    saveStore(store);
+
+    const token = createAdminSessionToken();
+    const pendingCount = store.submissions.filter((s) => s.status === 'pending').length;
+    res.status(201).json({
+      token,
+      authMode: 'claimed' as AdminAuthMode,
+      pendingCount,
+    });
+  });
+
+  // Admin passcode login (env ADMIN_PASSCODE always takes precedence over claimed hash)
+  app.post('/api/moderation/auth/login', express.json({ limit: '16kb' }), (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    const mode = getAuthMode();
+    if (mode === 'unclaimed') {
+      res.status(409).json({ error: '尚未设置管理员密码，请先完成首次设置' });
+      return;
+    }
+
+    const clientKey = getClientKey(req);
+    const now = Date.now();
+    const record = loginFailureMap.get(clientKey);
+    if (record && record.resetAt > now && record.count >= LOGIN_MAX_FAILURES) {
+      res.status(429).json({ error: '密码尝试次数过多，请 10 分钟后再试' });
+      return;
+    }
+
+    const candidate = typeof req.body?.passcode === 'string' ? req.body.passcode.trim() : '';
+    const envPasscode = getConfiguredEnvPasscode();
+    const verified = envPasscode
+      ? verifyEnvPasscode(candidate, envPasscode)
+      : verifyPasscodeHash(candidate, store.adminCredential);
+
+    if (!verified) {
+      if (!record || record.resetAt <= now) {
+        loginFailureMap.set(clientKey, { count: 1, resetAt: now + LOGIN_RATE_WINDOW_MS });
+      } else {
+        record.count += 1;
+      }
+      res.status(401).json({ error: '管理员密码不正确' });
+      return;
+    }
+
+    loginFailureMap.delete(clientKey);
+    const token = createAdminSessionToken();
+    const pendingCount = store.submissions.filter((s) => s.status === 'pending').length;
+    res.json({
+      token,
+      authMode: mode,
+      pendingCount,
+    });
+  });
+
+  // Revoke current in-memory Bearer token
+  app.post('/api/moderation/auth/logout', (req, res) => {
+    const token = extractBearerToken(req.headers.authorization);
+    if (token) {
+      activeAdminSessions.delete(token);
+    }
+    res.json({ ok: true });
+  });
+
+  // Moderator-only: List all submissions & current overrides
+  app.get('/api/moderation/submissions', requireModerator, (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.json({
       submissions: store.submissions,
@@ -320,10 +475,10 @@ async function createServer(): Promise<void> {
     });
   });
 
-  // Localhost-only: Approve a pending submission
+  // Moderator-only: Approve a pending submission
   app.post(
     '/api/moderation/submissions/:id/approve',
-    requireLocalhost,
+    requireModerator,
     express.json({ limit: '64kb' }),
     (req, res) => {
       const id = req.params.id;
@@ -390,7 +545,7 @@ async function createServer(): Promise<void> {
   // Localhost-only: Reject a pending submission
   app.post(
     '/api/moderation/submissions/:id/reject',
-    requireLocalhost,
+    requireModerator,
     express.json({ limit: '64kb' }),
     (req, res) => {
       const id = req.params.id;
@@ -423,7 +578,7 @@ async function createServer(): Promise<void> {
   // Localhost-only: Revert an approved override back to canonical default
   app.post(
     '/api/moderation/revert',
-    requireLocalhost,
+    requireModerator,
     express.json({ limit: '64kb' }),
     (req, res) => {
       const body = (req.body ?? {}) as Record<string, unknown>;
@@ -463,7 +618,7 @@ async function createServer(): Promise<void> {
   // Localhost-only: Directly replace a manga series cover from the local admin panel
   app.post(
     '/api/moderation/series-cover',
-    requireLocalhost,
+    requireModerator,
     express.json({ limit: '8mb' }),
     (req, res) => {
       const body = (req.body ?? {}) as Record<string, unknown>;
@@ -487,6 +642,181 @@ async function createServer(): Promise<void> {
 
       saveStore(store);
       res.json({ overrides: store.overrides, imageUrl: saved.imageUrl });
+    }
+  );
+
+  // Localhost-only: Apply detail-page copy and/or image edits immediately without self-review
+  app.post(
+    '/api/moderation/direct-apply',
+    requireModerator,
+    express.json({ limit: '16mb' }),
+    (req, res) => {
+      const body = (req.body ?? {}) as Record<string, unknown>;
+      const gambleId = typeof body.gambleId === 'string' ? body.gambleId.trim() : '';
+      const gambleRecord = GAMBLE_RECORDS.find((g) => g.id === gambleId);
+      if (!gambleRecord) {
+        res.status(400).json({ error: '无效的赌局目标' });
+        return;
+      }
+
+      const seriesLabel = VALID_SERIES_TARGETS.get(gambleRecord.seriesId) ?? '';
+      const gambleLabel = VALID_GAMBLE_TARGETS.get(gambleId) ?? gambleRecord.title;
+      const submittedByRaw =
+        typeof body.submittedBy === 'string' ? body.submittedBy.trim() : '';
+      const noteRaw = typeof body.note === 'string' ? body.note.trim() : '';
+      const submittedBy = (submittedByRaw || '本机管理员').slice(0, 32);
+      const note = noteRaw.slice(0, 240);
+
+      let validatedCopyPatch: ReturnType<typeof sanitizeCopyPatch> = null;
+      if (body.copyPatch !== undefined) {
+        validatedCopyPatch = sanitizeCopyPatch(body.copyPatch);
+        if (!validatedCopyPatch) {
+          res.status(400).json({ error: '请检查修订文案内容是否有效' });
+          return;
+        }
+      }
+
+      const hasArtwork = typeof body.artworkDataUrl === 'string' && body.artworkDataUrl.length > 0;
+      const hasGallery = typeof body.galleryDataUrl === 'string' && body.galleryDataUrl.length > 0;
+      const hasSeriesCover =
+        typeof body.seriesCoverDataUrl === 'string' && body.seriesCoverDataUrl.length > 0;
+
+      if (!validatedCopyPatch && !hasArtwork && !hasGallery && !hasSeriesCover) {
+        res.status(400).json({ error: '当前没有检测到可保存的修改内容' });
+        return;
+      }
+
+      let savedArtworkUrl: string | undefined;
+      let savedGalleryUrl: string | undefined;
+      let savedSeriesCoverUrl: string | undefined;
+
+      if (hasArtwork) {
+        const saved = decodeAndSaveUploadedImage(body.artworkDataUrl);
+        if ('error' in saved) {
+          res.status(400).json({ error: saved.error });
+          return;
+        }
+        savedArtworkUrl = saved.imageUrl;
+      }
+
+      if (hasGallery) {
+        const saved = decodeAndSaveUploadedImage(body.galleryDataUrl);
+        if ('error' in saved) {
+          safeUnlinkUpload(savedArtworkUrl, store);
+          res.status(400).json({ error: saved.error });
+          return;
+        }
+        savedGalleryUrl = saved.imageUrl;
+      }
+
+      if (hasSeriesCover) {
+        const saved = decodeAndSaveUploadedImage(body.seriesCoverDataUrl);
+        if ('error' in saved) {
+          safeUnlinkUpload(savedArtworkUrl, store);
+          safeUnlinkUpload(savedGalleryUrl, store);
+          res.status(400).json({ error: saved.error });
+          return;
+        }
+        savedSeriesCoverUrl = saved.imageUrl;
+      }
+
+      const nowIso = new Date().toISOString();
+      let appliedCount = 0;
+
+      if (validatedCopyPatch) {
+        const existing = store.overrides.gambleCopies[gambleId] ?? {};
+        store.overrides.gambleCopies[gambleId] = {
+          ...existing,
+          ...validatedCopyPatch,
+        };
+        store.submissions.unshift({
+          id: crypto.randomUUID(),
+          type: 'gamble-copy',
+          targetId: gambleId,
+          targetLabel: gambleLabel,
+          submittedBy,
+          note: note || '本机直接保存文案',
+          createdAt: nowIso,
+          reviewedAt: nowIso,
+          reviewNote: '本机直接生效',
+          status: 'approved',
+          copyPatch: validatedCopyPatch,
+        });
+        appliedCount += 1;
+      }
+
+      if (savedArtworkUrl) {
+        const previous = store.overrides.gambleArtworks[gambleId];
+        store.overrides.gambleArtworks[gambleId] = savedArtworkUrl;
+        if (previous && previous !== savedArtworkUrl) {
+          safeUnlinkUpload(previous, store);
+        }
+        store.submissions.unshift({
+          id: crypto.randomUUID(),
+          type: 'gamble-artwork',
+          targetId: gambleId,
+          targetLabel: gambleLabel,
+          submittedBy,
+          note: note || '本机直接替换主图',
+          createdAt: nowIso,
+          reviewedAt: nowIso,
+          reviewNote: '本机直接生效',
+          status: 'approved',
+          imageUrl: savedArtworkUrl,
+        });
+        appliedCount += 1;
+      }
+
+      if (savedGalleryUrl) {
+        const current = store.overrides.gambleGalleries[gambleId] ?? [];
+        if (!current.includes(savedGalleryUrl)) {
+          store.overrides.gambleGalleries[gambleId] = [...current, savedGalleryUrl];
+        }
+        store.submissions.unshift({
+          id: crypto.randomUUID(),
+          type: 'gamble-gallery',
+          targetId: gambleId,
+          targetLabel: gambleLabel,
+          submittedBy,
+          note: note || '本机直接追加配图',
+          createdAt: nowIso,
+          reviewedAt: nowIso,
+          reviewNote: '本机直接生效',
+          status: 'approved',
+          imageUrl: savedGalleryUrl,
+        });
+        appliedCount += 1;
+      }
+
+      if (savedSeriesCoverUrl) {
+        const previous = store.overrides.seriesCovers[gambleRecord.seriesId];
+        store.overrides.seriesCovers[gambleRecord.seriesId] = savedSeriesCoverUrl;
+        if (previous && previous !== savedSeriesCoverUrl) {
+          safeUnlinkUpload(previous, store);
+        }
+        store.submissions.unshift({
+          id: crypto.randomUUID(),
+          type: 'series-cover',
+          targetId: gambleRecord.seriesId,
+          targetLabel: seriesLabel || gambleRecord.seriesId,
+          submittedBy,
+          note: note || '本机直接更换作品封面',
+          createdAt: nowIso,
+          reviewedAt: nowIso,
+          reviewNote: '本机直接生效',
+          status: 'approved',
+          imageUrl: savedSeriesCoverUrl,
+        });
+        appliedCount += 1;
+      }
+
+      saveStore(store);
+      const pendingCount = store.submissions.filter((s) => s.status === 'pending').length;
+      res.json({
+        overrides: store.overrides,
+        appliedCount,
+        pendingCount,
+      });
     }
   );
 

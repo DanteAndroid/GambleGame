@@ -49,8 +49,12 @@ export interface ApprovedOverrides {
   gambleCopies: Record<string, GambleCopyPatch>;
 }
 
+export type AdminAuthMode = 'env' | 'claimed' | 'unclaimed';
+
 export interface ModerationStatusResponse {
   canModerate: boolean;
+  isLocalhost?: boolean;
+  authMode?: AdminAuthMode;
   pendingCount: number;
 }
 

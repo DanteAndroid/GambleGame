@@ -23,50 +23,54 @@
 }
 
 /* ==================== 2 THEMES: DARK & LIGHT ==================== */
-/* 1. 深色模式 (Default — Sumi Obsidian & Burnished Brass Print Salon) */
+/* 1. 深色模式 (Default — Layered Sumi Obsidian & Burnished Brass Print Salon) */
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg-page: #09090c;
-  --bg-header: rgba(9, 9, 12, 0.9);
-  --bg-shelf: #0f0f14;
-  --bg-card: #131319;
-  --bg-card-hover: #191922;
-  --bg-inset: #1a1a22;
-  --bg-colophon: #060608;
-  --bg-input: #14141b;
-  --bg-img: #0d0d11;
-  --text-primary: #f5f2eb;
-  --text-secondary: #d8d3ca;
-  --text-muted: #a6a198;
-  --border-subtle: #2b2b38;
-  --border-hairline: #22222d;
-  --border-strong: #5c5a69;
+  /* 5-tier calibrated luminance ladder: colophon (#070709) < page (#0c0d10) < shelf (#13151b) < card (#171a22) < elevated/inset (#20242f) */
+  --bg-page: #0c0d10;
+  --bg-header: rgba(12, 13, 16, 0.86);
+  --bg-shelf: #13151b;
+  --bg-card: #171a22;
+  --bg-card-hover: #1e222c;
+  --bg-inset: #20242f;
+  --bg-colophon: #070709;
+  --bg-input: #14171e;
+  --bg-img: #0f1116;
+  /* 3-level warm paper typography hierarchy */
+  --text-primary: #f4f1ea;
+  --text-secondary: #c8c3b8;
+  --text-muted: #8e8980;
+  /* Translucent crisp hairlines that harmonize cleanly across every surface tier */
+  --border-hairline: rgba(255, 255, 255, 0.065);
+  --border-subtle: rgba(255, 255, 255, 0.115);
+  --border-strong: rgba(255, 255, 255, 0.25);
   --accent: #e04242;
   --accent-hover: #c43131;
   --accent-fg: #ffffff;
-  --brass: #d5b47a;
-  --brass-muted: rgba(213, 180, 122, 0.34);
-  --diagram-surface: #181821;
-  --diagram-panel: #20202b;
-  --diagram-border: #363647;
+  --brass: #d5b274;
+  --brass-muted: rgba(213, 178, 116, 0.34);
+  /* Interactive diagram stage sits cleanly on #0c0d10 canvas without any outer wrapper */
+  --diagram-surface: #151820;
+  --diagram-panel: #1f232e;
+  --diagram-border: rgba(255, 255, 255, 0.12);
   --diagram-accent: #ff6b6b;
-  --diagram-brass: #e7c98f;
+  --diagram-brass: #e6c68a;
   --btn-primary-bg: #f4f0e8;
-  --btn-primary-fg: #09090c;
-  --win-bg: #000000;
-  --win-fg: #ffffff;
-  --win-border: rgba(255, 255, 255, 0.3);
-  --lose-bg: #22222b;
-  --lose-fg: #9a9690;
-  --lose-border: #333340;
-  --img-ring: rgba(255, 255, 255, 0.1);
-  --spoiler-bg: #070709;
-  --card-shadow: 0 14px 32px -18px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.045);
-  --card-shadow-hover: 0 22px 44px -18px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(200, 166, 110, 0.16);
-  --cover-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.85);
-  --dot-pattern: rgba(244, 240, 232, 0.032);
-  --hero-glow: radial-gradient(64% 42% at 50% 0%, rgba(217, 54, 54, 0.11) 0%, rgba(200, 166, 110, 0.045) 45%, rgba(9, 9, 12, 0) 100%);
+  --btn-primary-fg: #0c0d10;
+  --win-bg: #08080a;
+  --win-fg: #f8f5ef;
+  --win-border: rgba(255, 255, 255, 0.28);
+  --lose-bg: rgba(255, 255, 255, 0.05);
+  --lose-fg: #9a958d;
+  --lose-border: rgba(255, 255, 255, 0.1);
+  --img-ring: rgba(255, 255, 255, 0.12);
+  --spoiler-bg: #090a0d;
+  --card-shadow: 0 16px 34px -20px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.065);
+  --card-shadow-hover: 0 24px 48px -18px rgba(0, 0, 0, 0.96), inset 0 1px 0 rgba(213, 178, 116, 0.22);
+  --cover-shadow: 0 18px 36px -14px rgba(0, 0, 0, 0.9), 0 4px 12px -4px rgba(0, 0, 0, 0.65);
+  --dot-pattern: rgba(244, 240, 232, 0.026);
+  --hero-glow: radial-gradient(68% 46% at 50% 0%, rgba(213, 178, 116, 0.065) 0%, rgba(224, 66, 66, 0.055) 38%, rgba(12, 13, 16, 0) 100%);
 }
 
 /* 2. 亮色模式 (Archival Rag Paper & Bronze Ink) */
@@ -86,7 +90,7 @@
   --text-muted: #6f6a61;
   --border-subtle: #dad2c2;
   --border-hairline: #e7e0d2;
-  --border-strong: #231f1a;
+  --border-strong: #3b352c;
   --accent: #b81d1d;
   --accent-hover: #961616;
   --accent-fg: #ffffff;
@@ -177,10 +181,10 @@
   will-change: transform;
   box-shadow: var(--card-shadow);
   transition:
-    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
-    z-index 0ms linear 360ms;
+    transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    z-index 0ms linear 340ms;
 }
 
 .collector-card-interactive::after {
@@ -204,9 +208,9 @@
     z-index: 20;
     transform: translate3d(0, 0, 0) scale(1.012);
     transition:
-      transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
-      background-color 280ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 260ms cubic-bezier(0.22, 1, 0.36, 1),
       z-index 0ms linear 0ms;
   }
 
@@ -233,8 +237,8 @@
   backface-visibility: hidden;
   will-change: transform;
   transition:
-    transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
-    z-index 0ms linear 340ms;
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    z-index 0ms linear 320ms;
 }
 
 .cover-rail-item:focus-visible {
@@ -247,7 +251,7 @@
     z-index: 20;
     transform: translate3d(0, 0, 0) scale(1.035);
     transition:
-      transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
       z-index 0ms linear 0ms;
   }
 }
@@ -266,6 +270,15 @@
 
 .cover-plate-shadow {
   box-shadow: var(--cover-shadow);
+}
+
+/* Single-elevation depth for borderless diagram stage wrapper */
+.diagram-stage > div > div:first-child {
+  box-shadow: var(--card-shadow);
+}
+
+.disclosure-reveal {
+  animation: pageReveal 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* Clean hidden horizontal scrollbar for the top manga cover strip */

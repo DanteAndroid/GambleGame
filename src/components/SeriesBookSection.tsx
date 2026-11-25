@@ -28,13 +28,13 @@ export function SeriesBookSection({
       data-testid="series-book-section"
       className="w-full bg-[var(--bg-colophon)] text-[#F4F0E8] border-t border-[var(--border-subtle)] py-10 sm:py-14 lg:py-16"
     >
-      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-9 lg:gap-10 xl:gap-12 items-start">
           {/* Left: Compact Cover+Meta on Mobile, Equal-Height Full-Bleed B6 Cover + Book Info on Desktop */}
           <div className="lg:col-span-6 grid grid-cols-[88px_1fr] sm:flex sm:flex-row sm:items-stretch gap-x-4 gap-y-4 sm:gap-7">
             <div
               data-testid="series-book-cover"
-              className="w-[88px] sm:w-[184px] shrink-0 aspect-[128/182] sm:aspect-auto sm:min-h-[262px] bg-[#141418] overflow-hidden ring-1 ring-white/15 cover-plate-shadow"
+              className="w-[88px] sm:w-[184px] shrink-0 aspect-[128/182] sm:aspect-auto sm:min-h-[262px] rounded-md bg-[#141418] overflow-hidden ring-1 ring-white/15 cover-plate-shadow"
             >
               <img
                 src={getThumbImageUrl(series.coverUrl)}
@@ -135,7 +135,7 @@ export function SeriesBookSection({
                   onClick={() => onBrowseSeriesOnHome(series.id)}
                   className="inline-flex items-center gap-1.5 min-h-[40px] text-xs font-medium text-[#C8A66E] hover:text-white underline underline-offset-4 decoration-[#C8A66E]/40 hover:decoration-white transition-colors cursor-pointer"
                 >
-                  <span>查看《{series.title}》全部赌局</span>
+                  <span>查看《{series.title}》全部游戏</span>
                   <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
               </div>
@@ -146,10 +146,10 @@ export function SeriesBookSection({
           <div className="lg:col-span-6 lg:border-l lg:border-white/12 lg:pl-10 xl:pl-12">
             <div className="flex items-baseline justify-between gap-4 pb-3 border-b border-white/25">
               <h3 className="font-mincho font-normal text-lg text-white">
-                赌局目录
+                游戏目录
               </h3>
               <span className="text-xs tabular-nums text-[#C8A66E]">
-                共 {String(seriesGambles.length).padStart(2, '0')} 局
+                共 {seriesGambles.length} 个游戏
               </span>
             </div>
 
